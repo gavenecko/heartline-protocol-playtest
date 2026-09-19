@@ -1,0 +1,275 @@
+{
+  "sequences": [
+    {
+      "id": "boot",
+      "trigger": "boot",
+      "once": true,
+      "lines": [
+        {
+          "speaker": "System",
+          "text": "Heartline Protocol is intended for adults. You must be 18 or older to play."
+        },
+        {
+          "speaker": "System",
+          "text": "Confirm you are 18+ to continue. SFW Mode ON — no adult scenes in Chapter 1."
+        }
+      ]
+    },
+    {
+      "id": "title_new",
+      "trigger": "title_new",
+      "once": true,
+      "lines": [
+        {
+          "speaker": "Narration",
+          "text": "Lumina Quay wears rain like jewelry. Neon leases flicker over wet glass."
+        },
+        {
+          "speaker": "Narration",
+          "text": "The envelope in your hand is heavy: Atelier Tower — Handler Lease Transfer."
+        },
+        {
+          "speaker": "Narration",
+          "text": "Tonight, the Tower calls you home."
+        },
+        {
+          "speaker": "Mira",
+          "text": "You're early. Or the Breach is early. Hard to tell with Quay weather."
+        },
+        {
+          "speaker": "Mira",
+          "text": "Mira Solenne. Independent agent. Congrats, {Handler}. The Tower's yours on paper."
+        },
+        {
+          "speaker": "Mira",
+          "text": "I'm staying. First Sync is downstairs. Try not to look impressed when I'm brilliant."
+        }
+      ]
+    },
+    {
+      "id": "tip_hub",
+      "trigger": "hub_enter",
+      "once": true,
+      "lines": [
+        {
+          "speaker": "Mira",
+          "text": "Stages burn Stamina. The Room burns Heart Energy — that's for talking, not punching storms."
+        },
+        {
+          "speaker": "Mira",
+          "text": "Team desk is where we pretend we have a plan. Jobs pay coins while we sleep."
+        },
+        {
+          "speaker": "System",
+          "text": "Tip: Tap Stages to deploy. Tap Room when you want conversation over combat."
+        }
+      ]
+    },
+    {
+      "id": "dlg_1_1_pre",
+      "trigger": "pre_stage",
+      "stageId": "1-1",
+      "once": true,
+      "lines": [
+        {
+          "speaker": "Mira",
+          "text": "Breach static in the lobby. Small one. Perfect for a first Sync."
+        },
+        {
+          "speaker": "Mira",
+          "text": "Match gems that match me — Verdant, or Prism if you're lucky. Fill my gauge. When it hits full, fire my Burst."
+        },
+        {
+          "speaker": "Mira",
+          "text": "I'll do the heroic part. You do the clever part."
+        }
+      ]
+    },
+    {
+      "id": "rec_ivy_jun",
+      "trigger": "post_stage",
+      "stageId": "1-1",
+      "once": true,
+      "lines": [
+        {
+          "speaker": "Ivy",
+          "text": "Handler! I mean — {Handler}! Ivy Cross. Independent. Mostly."
+        },
+        {
+          "speaker": "Juniper",
+          "text": "Juniper Tate. Door guard. Age twenty-one, licensed, insured."
+        },
+        {
+          "speaker": "Mira",
+          "text": "They're ours. Ivy, Juniper — lanes. {Handler} — trust them."
+        },
+        {
+          "speaker": "Ivy",
+          "text": "I won't drop the beat. Juniper has the shield. I'll drop the enemies."
+        },
+        {
+          "speaker": "Juniper",
+          "text": "Correct."
+        }
+      ]
+    },
+    {
+      "id": "tip_team",
+      "trigger": "team_enter",
+      "once": true,
+      "lines": [
+        {
+          "speaker": "System",
+          "text": "Assign up to 2 agents per lane: Front takes more hits, hits harder. Back safer for heals. Mid balanced."
+        },
+        {
+          "speaker": "Mira",
+          "text": "Put Juniper Front. Ivy Front or Mid. I'm Mid — I share the beat."
+        }
+      ]
+    },
+    {
+      "id": "flavor_1_2",
+      "trigger": "post_stage",
+      "stageId": "1-2",
+      "once": true,
+      "lines": [
+        {
+          "speaker": "Mira",
+          "text": "Cascades are the Grid saying yes. Chase them, but don't tunnel so hard you miss a Burst window."
+        }
+      ]
+    },
+    {
+      "id": "flavor_1_3",
+      "trigger": "post_stage",
+      "stageId": "1-3",
+      "once": true,
+      "lines": [
+        {
+          "speaker": "Juniper",
+          "text": "Front is loud. That's fine. Loud means they're hitting me, not you."
+        }
+      ]
+    },
+    {
+      "id": "flavor_1_4",
+      "trigger": "post_stage",
+      "stageId": "1-4",
+      "once": true,
+      "lines": [
+        {
+          "speaker": "Ivy",
+          "text": "Back-lane snipers are rude. Burst feels good when rude things fall down."
+        }
+      ]
+    },
+    {
+      "id": "dlg_wren_join",
+      "trigger": "post_stage",
+      "stageId": "1-5",
+      "once": true,
+      "lines": [
+        {
+          "speaker": "Wren",
+          "text": "Vitals look… dramatic. I'm Wren Halcyon — Tidewell night shift, Tower moonlighter."
+        },
+        {
+          "speaker": "Mira",
+          "text": "Nobody yet. That's the goal."
+        },
+        {
+          "speaker": "Wren",
+          "text": "Then I'm early. Perfect. I'll take Back lane and the kettle."
+        },
+        {
+          "speaker": "System",
+          "text": "Wren Halcyon joined the squad. Role: Support. Attunement: Verdant."
+        }
+      ]
+    },
+    {
+      "id": "room_tutorial",
+      "trigger": "room_enter",
+      "once": true,
+      "lines": [
+        {
+          "speaker": "Mira",
+          "text": "Door's unlocked. That's rare. Come in."
+        },
+        {
+          "speaker": "Mira",
+          "text": "This is the Room. Not a briefing. Just… us, and the window, and Quay pretending to sleep."
+        },
+        {
+          "speaker": "System",
+          "text": "Talk (5 Heart Energy): +20 Affection XP. Dialogue changes with Aff Rank."
+        },
+        {
+          "speaker": "Mira",
+          "text": "Talk first. Gifts later — I like Sunwell Tea. Not Corp pens."
+        }
+      ]
+    },
+    {
+      "id": "tip_assist_aim",
+      "trigger": "pre_stage",
+      "stageId": "1-9",
+      "once": true,
+      "lines": [
+        {
+          "speaker": "System",
+          "text": "Assist Aim highlights a valid ≥3 swap. Use it when the board looks rude."
+        },
+        {
+          "speaker": "Mira",
+          "text": "Telegraphs mean the enemy is about to Burst. Don't panic — plan the swap."
+        }
+      ]
+    },
+    {
+      "id": "dlg_1_10_pre",
+      "trigger": "pre_stage",
+      "stageId": "1-10",
+      "once": true,
+      "lines": [
+        {
+          "speaker": "Juniper",
+          "text": "Lease Reclaimer construct on sensors. Corp-shaped. Rude-shaped."
+        },
+        {
+          "speaker": "Ivy",
+          "text": "We clear this, Chapter One's ours."
+        },
+        {
+          "speaker": "Wren",
+          "text": "Shields up, egos measured, tea after."
+        },
+        {
+          "speaker": "Mira",
+          "text": "{Handler} — full squad. Prism if it shows. Burst windows matter. I'm with you."
+        }
+      ]
+    },
+    {
+      "id": "ch1_clear",
+      "trigger": "post_stage",
+      "stageId": "1-10",
+      "once": true,
+      "lines": [
+        {
+          "speaker": "Mira",
+          "text": "Lobby's quiet. That's us. That's you."
+        },
+        {
+          "speaker": "Narration",
+          "text": "Chapter 1 complete. Atelier Tower holds — for tonight."
+        },
+        {
+          "speaker": "Mira",
+          "text": "There's more Grid under this city than one chapter can hold. But the lease feels real now."
+        }
+      ]
+    }
+  ]
+}

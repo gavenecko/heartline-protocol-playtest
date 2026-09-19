@@ -14,6 +14,7 @@ namespace Heartline.App
             SaveService.Instance.Data.unlockedAgents = new System.Collections.Generic.List<string> { "mira" };
             SaveService.Instance.Save();
             AnalyticsSink.Emit("ftue_step", "step_id=title_new");
+            PlayerPrefs.SetString("hp_pending_dialogue", "title_new");
             SceneManager.LoadScene("02_Hub");
         }
 

@@ -7,6 +7,7 @@ using TMPro;
 using Heartline.Save;
 using Heartline.Analytics;
 using Heartline.Shared;
+using Heartline.App;
 
 namespace Heartline.SyncMatch
 {
@@ -37,6 +38,10 @@ namespace Heartline.SyncMatch
         string _stageId;
         StageDefinition _stage;
         bool _ended;
+        int _turnsTaken;
+        bool _bondBuffConsumed;
+        bool _retreatArmed;
+        bool _assistTipShown;
         int _phase = 1;
 
         public string StageId => _stageId;
@@ -64,6 +69,14 @@ namespace Heartline.SyncMatch
             float prism = (_stage?.enemyTags != null && _stage.enemyTags.Contains("prism_spawn")) ? 0.10f : 0.04f;
             _board = new BoardSimulator(_stageId.GetHashCode(), prism);
             SetupSquad();
+            _turnsTaken = 0;
+            _bondBuffConsumed = false;
+            _retreatArmed = false;
+            _assistTipShown = false;
+            if (DialogueService.Instance != null)
+                DialogueService.Instance.TryStartTrigger("pre_stage", _stageId);
+            if (BondMatrix.IsMiraIvyBondActive(_agents.Keys))
+                Note("Bond Matrix: Mira↔Ivy Shared Lease ready (+15% ATK once).");
             if (_stage != null && _stage.forceMiraBurst && _gauges.ContainsKey("mira"))
             {
                 _gauges["mira"].Set(1f);
@@ -71,6 +84,12 @@ namespace Heartline.SyncMatch
             }
             if (_stage != null)
                 Note($"{_stage.id} {_stage.name} · {_stage.teachingGoal}");
+            Note("— Player Phase — match gems, fill gauges, fire Bursts.");
+            if (_stageId == "1-9" || (_stage?.enemyTags != null && _stage.enemyTags.Contains("telegraph")))
+            {
+                Note("Tip: Assist Aim highlights a valid ≥3 swap.");
+                _assistTipShown = true;
+            }
             Redraw();
         }
 
@@ -137,6 +156,11 @@ namespace Heartline.SyncMatch
         public void AssistAimSwap()
         {
             if (_ended) return;
+            if (!_assistTipShown)
+            {
+                Note("Assist Aim: picks a valid ≥3 swap for you.");
+                _assistTipShown = true;
+            }
             for (int y = 0; y < BoardSimulator.Height; y++)
             for (int x = 0; x < BoardSimulator.Width; x++)
             {
@@ -211,7 +235,8 @@ namespace Heartline.SyncMatch
             }
             var stats = def.StatsAtLevel(LevelOf(agentId));
             _field.TryGet(agentId, out var lane);
-            int dmg = (int)(stats.atk * BurstMul(def.role) * LaneField.DamageDealtMod(lane) * EnemyTagDamageMul());
+            float bondMul = BondMatrix.AtkMultiplier(BondMatrix.IsMiraIvyBondActive(_agents.Keys), _bondBuffConsumed);
+            int dmg = (int)(stats.atk * bondMul * BurstMul(def.role) * LaneField.DamageDealtMod(lane) * EnemyTagDamageMul());
             if (def.role == "Support")
             {
                 HealSquad((int)(stats.atk * 0.8f));
@@ -220,6 +245,11 @@ namespace Heartline.SyncMatch
             else
             {
                 _enemyHp = Mathf.Max(0, _enemyHp - dmg);
+                if (bondMul > 1f)
+                {
+                    _bondBuffConsumed = true;
+                    Note("Bond Matrix: Shared Lease ATK buff consumed.");
+                }
                 Note($"{def.displayName} BURST → {dmg}");
             }
             AnalyticsSink.Emit("burst_used", $"agent_id={agentId};stage_id={_stageId}");
@@ -245,6 +275,8 @@ namespace Heartline.SyncMatch
         public void EndTurn()
         {
             if (_ended) return;
+            _retreatArmed = false;
+            Note("— Enemy Phase —");
             if (_enemyHp > 0 && _agents.Count > 0)
             {
                 var tank = _agents.Keys.FirstOrDefault(id => _field.TryGet(id, out var l) && l == Lane.Front)
@@ -254,20 +286,22 @@ namespace Heartline.SyncMatch
                 if (_agentHp.ContainsKey(tank))
                 {
                     _agentHp[tank] = Mathf.Max(0, _agentHp[tank] - dmg);
-                    Note($"Enemy hits {tank} for {dmg} (HP {_agentHp[tank]})");
+                    Note($"Enemy ATK {_enemyAtk} (StageCombatMath) hits {tank} for {dmg} [{lane}] (HP {_agentHp[tank]})");
                     if (_agentHp.Values.All(h => h <= 0))
                     {
                         Lose();
                         return;
                     }
                 }
-                else Note($"Enemy hits {tank} for {dmg} (stub)");
+                else Note($"Enemy ATK {_enemyAtk} hits {tank} for {dmg} (stub)");
             }
             foreach (var g in _gauges.Values) g.TickTurnEnd();
             _swapsLeft = 5;
-            Note("— Turn end —");
+            _turnsTaken++;
+            Note($"— Player Phase — swaps refreshed (turn {_turnsTaken})");
             Redraw();
         }
+
 
         void Win()
         {
@@ -309,6 +343,16 @@ namespace Heartline.SyncMatch
                     Note("Ivy + Juniper joined the squad.");
                 }
             }
+            
+            int alive = _agentHp.Count > 0 ? _agentHp.Values.Count(h => h > 0) : _agents.Count;
+            string stype = _stage != null ? _stage.type : "Story";
+            int threshold = StageStarRating.ThresholdForStageType(stype);
+            int stars = StageStarRating.Rate(alive, _turnsTaken, threshold);
+            save.SetStageStars(_stageId, stars);
+            Note($"Clear {StageStarRating.FormatStars(stars)} (alive {alive}, turns {_turnsTaken}/{threshold})");
+            if (DialogueService.Instance != null)
+                DialogueService.Instance.TryStartTrigger("post_stage", _stageId);
+
             SaveService.Instance.Save();
             AnalyticsSink.Emit("stage_clear", $"stage_id={_stageId}");
             Invoke(nameof(BackToHub), 1.2f);
@@ -352,6 +396,13 @@ namespace Heartline.SyncMatch
         public void Retreat()
         {
             if (_ended) return;
+            if (!_retreatArmed)
+            {
+                _retreatArmed = true;
+                Note("Retreat? Tap Retreat again to confirm. (Progress not saved.)");
+                Redraw();
+                return;
+            }
             _ended = true;
             AnalyticsSink.Emit("stage_fail", $"stage_id={_stageId};reason=retreat");
             SceneManager.LoadScene("02_Hub");

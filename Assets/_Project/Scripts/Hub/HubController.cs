@@ -5,6 +5,7 @@ using TMPro;
 using Heartline.Save;
 using Heartline.Analytics;
 using Heartline.Shared;
+using Heartline.App;
 
 namespace Heartline.Hub
 {
@@ -34,6 +35,39 @@ namespace Heartline.Hub
         {
             RefreshHud();
             AnalyticsSink.Emit("hub_enter");
+            TryPlayHubDialogue();
+        }
+
+        void TryPlayHubDialogue()
+        {
+            if (DialogueService.Instance == null) return;
+            var pending = PlayerPrefs.GetString("hp_pending_dialogue", "");
+            if (!string.IsNullOrEmpty(pending))
+            {
+                PlayerPrefs.DeleteKey("hp_pending_dialogue");
+                if (DialogueService.Instance.TryStart(pending) || DialogueService.Instance.TryStartTrigger(pending))
+                {
+                    ShowDialogueStatus();
+                    return;
+                }
+            }
+            if (DialogueService.Instance.TryStartTrigger("hub_enter"))
+                ShowDialogueStatus();
+        }
+
+        void ShowDialogueStatus()
+        {
+            if (DialogueService.Instance == null || !DialogueService.Instance.IsPlaying) return;
+            HudText.Set(statusText, statusTextLegacy, DialogueService.Instance.CurrentDisplay());
+        }
+
+        public void AdvanceDialogue()
+        {
+            if (DialogueService.Instance == null || !DialogueService.Instance.IsPlaying) return;
+            if (!DialogueService.Instance.Advance())
+                RefreshHud();
+            else
+                ShowDialogueStatus();
         }
 
         public void RefreshHud()
