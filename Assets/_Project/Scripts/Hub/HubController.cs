@@ -21,21 +21,42 @@ namespace Heartline.Hub
         [SerializeField] Text coinsTextLegacy;
         [SerializeField] Text crystalsTextLegacy;
         [SerializeField] Text statusTextLegacy;
+        [SerializeField] RawImage featuredPortrait;
 
-        public void BindLegacy(Text sta, Text he, Text coins, Text crystals, Text status)
+        public void BindLegacy(Text sta, Text he, Text coins, Text crystals, Text status, RawImage featured = null)
         {
             staminaTextLegacy = sta;
             heartTextLegacy = he;
             coinsTextLegacy = coins;
             crystalsTextLegacy = crystals;
             statusTextLegacy = status;
+            if (featured != null) featuredPortrait = featured;
+            ApplyFeaturedPortrait();
         }
 
         void OnEnable()
         {
             RefreshHud();
+            ApplyFeaturedPortrait();
             AnalyticsSink.Emit("hub_enter");
             TryPlayHubDialogue();
+        }
+
+        void ApplyFeaturedPortrait()
+        {
+            if (featuredPortrait == null) return;
+            ArtLoader.ApplyBust(featuredPortrait, FeaturedAgentId());
+        }
+
+        static string FeaturedAgentId()
+        {
+            var d = SaveService.Instance?.Data;
+            if (d?.unlockedAgents != null)
+            {
+                if (d.unlockedAgents.Contains("mira")) return "mira";
+                if (d.unlockedAgents.Count > 0) return d.unlockedAgents[0];
+            }
+            return "mira";
         }
 
         void TryPlayHubDialogue()

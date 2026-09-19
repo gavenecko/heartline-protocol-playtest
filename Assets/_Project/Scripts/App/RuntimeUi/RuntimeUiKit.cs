@@ -114,5 +114,21 @@ namespace Heartline.App.RuntimeUi
             content = contentGo.transform;
             return scroll;
         }
+        public static RawImage RawImage(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax,
+            Vector2 offsetMin, Vector2 offsetMax, Texture texture = null, Color? color = null)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            var raw = go.AddComponent<RawImage>();
+            raw.texture = texture;
+            raw.color = color ?? Color.white;
+            raw.raycastTarget = false;
+            var rt = raw.rectTransform;
+            rt.anchorMin = anchorMin;
+            rt.anchorMax = anchorMax;
+            rt.offsetMin = offsetMin;
+            rt.offsetMax = offsetMax;
+            return raw;
+        }
     }
 }

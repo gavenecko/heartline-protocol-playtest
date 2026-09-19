@@ -46,6 +46,7 @@ namespace Heartline.SyncMatch
         bool _showResults;
         string _resultsSummary = "";
         Text resultsTextLegacy;
+        RawImage[] lanePortraits;
         readonly System.Collections.Generic.List<(string id, int beforeLv, int afterLv, int xp, int need, int cap)> _xpLines
             = new System.Collections.Generic.List<(string, int, int, int, int, int)>();
         int _rewardLc;
@@ -61,7 +62,7 @@ namespace Heartline.SyncMatch
         public int SwapsLeft => _swapsLeft;
         public BoardSimulator Board => _board;
 
-        public void BindLegacy(Text board, Text log, Text enemy, Text gauge, Text lane = null, Text status = null, Text results = null)
+        public void BindLegacy(Text board, Text log, Text enemy, Text gauge, Text lane = null, Text status = null, Text results = null, RawImage[] portraits = null)
         {
             boardTextLegacy = board;
             logTextLegacy = log;
@@ -70,6 +71,26 @@ namespace Heartline.SyncMatch
             laneTextLegacy = lane;
             statusTextLegacy = status;
             resultsTextLegacy = results;
+            if (portraits != null) lanePortraits = portraits;
+        }
+
+        public void RefreshLanePortraits()
+        {
+            if (lanePortraits == null) return;
+            var ids = new System.Collections.Generic.List<string>();
+            foreach (var lane in new[] { Lane.Front, Lane.Mid, Lane.Back })
+            {
+                foreach (var id in _field.Occupants(lane))
+                    ids.Add(id);
+            }
+            for (int i = 0; i < lanePortraits.Length; i++)
+            {
+                if (lanePortraits[i] == null) continue;
+                if (i < ids.Count)
+                    ArtLoader.ApplySd(lanePortraits[i], ids[i]);
+                else
+                    lanePortraits[i].enabled = false;
+            }
         }
 
         void Start()
@@ -103,6 +124,7 @@ namespace Heartline.SyncMatch
                 Note("Tip: Assist Aim highlights a valid ≥3 swap.");
                 _assistTipShown = true;
             }
+            RefreshLanePortraits();
             Redraw();
         }
 

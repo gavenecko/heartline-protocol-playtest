@@ -73,6 +73,7 @@ Source of truth: `Docs/heartline-protocol-economy-notes.md` + `Assets/StreamingA
 | Arena async stub + Arena Marks | **Done** (stub) |
 | Tower / Abyss 10/50 + checkpoints | **Done** (stub) |
 | Agent Codex launch 12 teasers | **Done** |
+| AI T0 art in runtime UI (busts / Room BG) | **Done** (Resources + LoadImage) |
 | Live2D / final art / VO | **Stub** |
 | Live server / IAP / Aff4+ / NSFW / weekly Arena shop | **Out of slice** |
 
@@ -90,7 +91,7 @@ Expected: **204 passed, 0 failed** (board, Prism, gauge, combo, lanes, ages×12,
 
 - **Systems freeze for art:** PRs #1–#5 loops are stable enough to commission T0 art (no blocking Live2D / Aff4+ / live server).
 - Art kickoff package under `Docs/` — commission order, briefs, placeholder slots, completion checklist.
-- Empty `Assets/_Project/Art/...` folders match `PLACEHOLDER_ART_SLOTS.md` (`.gitkeep`).
+- Art slots under `Assets/_Project/Art/...` (see `PLACEHOLDER_ART_SLOTS.md`); AI drafts landed; runtime mirrors in `Assets/Resources/Art/`.
 - Content policy unchanged: SFW-only · all agents 18+ · Juniper 21 · Adult path blocked.
 
 ### Carried from 0.4.0-slice
@@ -99,6 +100,37 @@ Expected: **204 passed, 0 failed** (board, Prism, gauge, combo, lanes, ages×12,
 - Arena / Tower / Codex reachable from Hub; save fields `arenaMarks`, `towerHighestCleared`, `towerLastCheckpoint`.
 - `agents.json` holds full launch roster seed (12); slice unlocks remain Mira→Ivy/Juniper→Wren.
 - All teaser ages ≥18 (Juniper 21); no underage invented.
+
+
+## Runtime art wiring
+
+AI draft T0 art from PRs #7–#10 is wired into playable runtime UI (no Addressables):
+
+| Source | Mirror / load |
+|--------|----------------|
+| `Assets/_Project/Art/Characters/{folder}/t0_bust.png` | Also copied to `Assets/Resources/Art/Characters/...` |
+| Room BGs `room_player_suite_evening` / `room_agent_loft_default` | `Assets/Resources/Art/Environment/Rooms/` |
+| KV + nav chrome (optional) | `Assets/Resources/Art/Marketing/` · `.../UI/Chrome/` |
+
+**Loader:** `ArtCatalog` + `ArtLoader` (`Assets/_Project/Scripts/Shared/Art/`).
+
+1. `Resources.Load<Texture2D>("Art/...")`
+2. Else `Texture2D.LoadImage` from `StreamingAssets/Art/...`, `Assets/Resources/Art/...`, or Editor `Application.dataPath/_Project/Art/...`
+
+**Agent id → folder:** mira→`mira_solenne`, ivy→`ivy_cross`, juniper→`juniper_tate`, wren→`wren_halcyon`, kade→`kade_virell`, nyra→`nyra_quell`, sable→`sable_rin`, ora→`ora_finch`, luce→`luce_amaranth`, helene→`helene_voss`, hex→`zara_hex_montal`, aveline→`aveline_roux`.
+
+**Screens showing art:**
+
+| Screen | Art |
+|--------|-----|
+| Title | Key visual |
+| Hub | Featured agent bust (Mira) + KV wash + nav bar |
+| Team | Selected roster bust |
+| Codex | Current agent bust (all 12) |
+| Room | Suite evening BG + Mira bust |
+| Battle | Lane SD/bust portraits (up to 4) |
+
+Drop replacement PNGs in-place under `_Project/Art` **and** re-copy into `Resources/Art` (same relative paths) so player builds keep working offline.
 
 ## Art kickoff
 

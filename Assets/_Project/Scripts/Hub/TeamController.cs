@@ -15,9 +15,15 @@ namespace Heartline.Hub
     {
         [SerializeField] TMP_Text squadText;
         [SerializeField] Text squadTextLegacy;
+        [SerializeField] RawImage portraitImage;
         string _selectedId = "mira";
 
-        public void BindLegacy(Text squad) => squadTextLegacy = squad;
+        public void BindLegacy(Text squad, RawImage portrait = null)
+        {
+            squadTextLegacy = squad;
+            if (portrait != null) portraitImage = portrait;
+            Refresh();
+        }
 
         void OnEnable()
         {
@@ -64,6 +70,8 @@ namespace Heartline.Hub
             if (DialogueService.Instance != null && DialogueService.Instance.IsPlaying)
                 sb.AppendLine().AppendLine(DialogueService.Instance.CurrentDisplay()).AppendLine("[Advance Dialogue]");
             HudText.Set(squadText, squadTextLegacy, sb.ToString());
+            if (portraitImage != null)
+                ArtLoader.ApplyBust(portraitImage, _selectedId);
         }
 
         static AgentSave Ensure(HeartlineSave d, string id)

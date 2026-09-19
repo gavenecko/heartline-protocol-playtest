@@ -16,20 +16,37 @@ namespace Heartline.Room
         [SerializeField] Text dialogueTextLegacy;
         [SerializeField] Text affTextLegacy;
         [SerializeField] Text energyTextLegacy;
+        [SerializeField] RawImage portraitImage;
+        [SerializeField] RawImage backgroundImage;
 
-        public void BindLegacy(Text dialogue, Text aff, Text energy)
+        public void BindLegacy(Text dialogue, Text aff, Text energy, RawImage portrait = null, RawImage background = null)
         {
             dialogueTextLegacy = dialogue;
             affTextLegacy = aff;
             energyTextLegacy = energy;
+            if (portrait != null) portraitImage = portrait;
+            if (background != null) backgroundImage = background;
+            ApplyArt();
         }
 
         void OnEnable()
         {
             AnalyticsSink.Emit("room_enter", "agent_id=mira");
+            ApplyArt();
             Refresh();
             SetDialogue("Mira: Door's unlocked. That's rare. Come in. (SFW Aff 1–3 · adults 18+)");
             ClaimMorningIfAny();
+        }
+
+        void ApplyArt()
+        {
+            if (backgroundImage != null)
+            {
+                if (!ArtLoader.ApplyRoomBg(backgroundImage, ArtCatalog.RoomSuiteEvening))
+                    ArtLoader.ApplyRoomBg(backgroundImage, ArtCatalog.RoomAgentLoft);
+            }
+            if (portraitImage != null)
+                ArtLoader.ApplyBust(portraitImage, "mira");
         }
 
         void Refresh()

@@ -6,9 +6,10 @@ using Heartline.ContentFlags;
 using Heartline.Hub;
 using Heartline.Room;
 using Heartline.SyncMatch;
-using GemColor = Heartline.GemColor;
+using GemColor = Heartline.SyncMatch.GemColor;
 using Heartline.Gacha;
 using Heartline.Meta;
+using Heartline.Shared;
 
 namespace Heartline.App.RuntimeUi
 {
@@ -93,6 +94,10 @@ namespace Heartline.App.RuntimeUi
         {
             var canvas = RuntimeUiKit.CreateCanvas("TitleCanvas", host);
             var title = host.gameObject.AddComponent<TitleController>();
+            var kv = RuntimeUiKit.RawImage(canvas.transform, "KeyVisual",
+                new Vector2(0.1f, 0.55f), new Vector2(0.9f, 0.82f), Vector2.zero, Vector2.zero,
+                null, new Color(1f, 1f, 1f, 0.9f));
+            ArtLoader.ApplyTexture(kv, ArtLoader.LoadKeyVisual());
             RuntimeUiKit.Label(canvas.transform, "Title", "HEARTLINE PROTOCOL", 48, TextAnchor.MiddleCenter,
                 new Vector2(0.05f, 0.82f), new Vector2(0.95f, 0.94f), Vector2.zero, Vector2.zero,
                 new Color(0.91f, 0.78f, 0.48f));
@@ -124,6 +129,12 @@ namespace Heartline.App.RuntimeUi
         {
             var canvas = RuntimeUiKit.CreateCanvas("HubCanvas", host);
             var hub = host.gameObject.AddComponent<HubController>();
+            var kv = RuntimeUiKit.RawImage(canvas.transform, "KeyVisual",
+                new Vector2(0.55f, 0.62f), new Vector2(0.95f, 0.82f), Vector2.zero, Vector2.zero,
+                null, new Color(1f, 1f, 1f, 0.55f));
+            ArtLoader.ApplyTexture(kv, ArtLoader.LoadKeyVisual());
+            var featured = RuntimeUiKit.RawImage(canvas.transform, "FeaturedBust",
+                new Vector2(0.62f, 0.48f), new Vector2(0.95f, 0.72f), Vector2.zero, Vector2.zero);
             var sta = RuntimeUiKit.Label(canvas.transform, "STA", "STA", 26, TextAnchor.MiddleLeft,
                 new Vector2(0.05f, 0.9f), new Vector2(0.5f, 0.97f), Vector2.zero, Vector2.zero);
             var he = RuntimeUiKit.Label(canvas.transform, "HE", "HE", 26, TextAnchor.MiddleLeft,
@@ -133,9 +144,9 @@ namespace Heartline.App.RuntimeUi
             var crystals = RuntimeUiKit.Label(canvas.transform, "PC", "PC", 26, TextAnchor.MiddleLeft,
                 new Vector2(0.5f, 0.84f), new Vector2(0.95f, 0.9f), Vector2.zero, Vector2.zero);
             var status = RuntimeUiKit.Label(canvas.transform, "Status", "Hub", 28, TextAnchor.MiddleCenter,
-                new Vector2(0.05f, 0.74f), new Vector2(0.95f, 0.84f), Vector2.zero, Vector2.zero,
+                new Vector2(0.05f, 0.74f), new Vector2(0.55f, 0.84f), Vector2.zero, Vector2.zero,
                 new Color(0f, 0.83f, 1f));
-            hub.BindLegacy(sta, he, coins, crystals, status);
+            hub.BindLegacy(sta, he, coins, crystals, status, featured);
             hub.RefreshHud();
 
             float y = 0.72f;
@@ -159,6 +170,10 @@ namespace Heartline.App.RuntimeUi
             RuntimeUiKit.Button(canvas.transform, "DebugSTA", "Debug: refill STA/HE",
                 new Vector2(0.2f, 0.02f), new Vector2(0.8f, 0.08f), Vector2.zero, Vector2.zero,
                 hub.DebugAddStamina, new Color(0.25f, 0.25f, 0.35f));
+            var nav = RuntimeUiKit.RawImage(canvas.transform, "NavBottom",
+                new Vector2(0.05f, 0.0f), new Vector2(0.95f, 0.045f), Vector2.zero, Vector2.zero,
+                null, new Color(1f, 1f, 1f, 0.85f));
+            ArtLoader.ApplyTexture(nav, ArtLoader.LoadNavBottom());
         }
 
         static void BuildStageSelect(Transform host)
@@ -194,14 +209,20 @@ namespace Heartline.App.RuntimeUi
         {
             var canvas = RuntimeUiKit.CreateCanvas("RoomCanvas", host);
             var room = host.gameObject.AddComponent<RoomController>();
+            var bg = RuntimeUiKit.RawImage(canvas.transform, "RoomBg",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero,
+                null, new Color(1f, 1f, 1f, 0.92f));
+            bg.transform.SetAsFirstSibling();
+            var portrait = RuntimeUiKit.RawImage(canvas.transform, "MiraBust",
+                new Vector2(0.55f, 0.42f), new Vector2(0.98f, 0.92f), Vector2.zero, Vector2.zero);
             var dialogue = RuntimeUiKit.Label(canvas.transform, "Dialogue", "…", 28, TextAnchor.UpperLeft,
-                new Vector2(0.06f, 0.55f), new Vector2(0.94f, 0.88f), Vector2.zero, Vector2.zero);
+                new Vector2(0.06f, 0.55f), new Vector2(0.58f, 0.88f), Vector2.zero, Vector2.zero);
             var aff = RuntimeUiKit.Label(canvas.transform, "Aff", "Aff", 26, TextAnchor.MiddleCenter,
-                new Vector2(0.05f, 0.48f), new Vector2(0.95f, 0.55f), Vector2.zero, Vector2.zero,
+                new Vector2(0.05f, 0.48f), new Vector2(0.55f, 0.55f), Vector2.zero, Vector2.zero,
                 new Color(1f, 0.45f, 0.65f));
             var energy = RuntimeUiKit.Label(canvas.transform, "HE", "HE", 24, TextAnchor.MiddleCenter,
-                new Vector2(0.05f, 0.42f), new Vector2(0.95f, 0.48f), Vector2.zero, Vector2.zero);
-            room.BindLegacy(dialogue, aff, energy);
+                new Vector2(0.05f, 0.42f), new Vector2(0.55f, 0.48f), Vector2.zero, Vector2.zero);
+            room.BindLegacy(dialogue, aff, energy, portrait, bg);
             RuntimeUiKit.Button(canvas.transform, "Talk", "Talk (−5 HE, +20 XP)",
                 new Vector2(0.1f, 0.32f), new Vector2(0.9f, 0.4f), Vector2.zero, Vector2.zero, room.Talk);
             RuntimeUiKit.Button(canvas.transform, "Gift", "Gift (−8 HE, Aff2+)",
@@ -220,9 +241,11 @@ namespace Heartline.App.RuntimeUi
         {
             var canvas = RuntimeUiKit.CreateCanvas("TeamCanvas", host);
             var team = host.gameObject.AddComponent<TeamController>();
+            var portrait = RuntimeUiKit.RawImage(canvas.transform, "SelectedBust",
+                new Vector2(0.62f, 0.55f), new Vector2(0.96f, 0.92f), Vector2.zero, Vector2.zero);
             var squad = RuntimeUiKit.Label(canvas.transform, "Squad", "Squad", 26, TextAnchor.UpperLeft,
-                new Vector2(0.05f, 0.42f), new Vector2(0.95f, 0.92f), Vector2.zero, Vector2.zero);
-            team.BindLegacy(squad);
+                new Vector2(0.05f, 0.42f), new Vector2(0.62f, 0.92f), Vector2.zero, Vector2.zero);
+            team.BindLegacy(squad, portrait);
 
             float y = 0.36f;
             void SlotBtn(string label, UnityEngine.Events.UnityAction action)
@@ -351,9 +374,11 @@ namespace Heartline.App.RuntimeUi
         {
             var canvas = RuntimeUiKit.CreateCanvas("CodexCanvas", host);
             var ctrl = host.gameObject.AddComponent<CodexController>();
+            var portrait = RuntimeUiKit.RawImage(canvas.transform, "CodexBust",
+                new Vector2(0.55f, 0.45f), new Vector2(0.96f, 0.96f), Vector2.zero, Vector2.zero);
             var status = RuntimeUiKit.Label(canvas.transform, "Status", "Codex", 20, TextAnchor.UpperLeft,
-                new Vector2(0.04f, 0.22f), new Vector2(0.96f, 0.96f), Vector2.zero, Vector2.zero);
-            ctrl.BindLegacy(status);
+                new Vector2(0.04f, 0.22f), new Vector2(0.55f, 0.96f), Vector2.zero, Vector2.zero);
+            ctrl.BindLegacy(status, portrait);
             RuntimeUiKit.Button(canvas.transform, "Prev", "◀ Prev",
                 new Vector2(0.05f, 0.10f), new Vector2(0.32f, 0.18f), Vector2.zero, Vector2.zero, ctrl.Prev);
             RuntimeUiKit.Button(canvas.transform, "Next", "Next ▶",
@@ -384,7 +409,14 @@ namespace Heartline.App.RuntimeUi
                 new Vector2(0.08f, 0.2f), new Vector2(0.92f, 0.85f), Vector2.zero, Vector2.zero,
                 new Color(0.91f, 0.78f, 0.48f));
             results.gameObject.SetActive(false);
-            battle.BindLegacy(board, log, enemy, gauge, lane, status, results);
+            var portraits = new RawImage[4];
+            for (int pi = 0; pi < portraits.Length; pi++)
+            {
+                float x0 = 0.02f + pi * 0.14f;
+                portraits[pi] = RuntimeUiKit.RawImage(canvas.transform, $"LanePortrait{pi}",
+                    new Vector2(x0, 0.365f), new Vector2(x0 + 0.13f, 0.455f), Vector2.zero, Vector2.zero);
+            }
+            battle.BindLegacy(board, log, enemy, gauge, lane, status, results, portraits);
 
             var grid = new GameObject("GemGrid");
             grid.transform.SetParent(canvas.transform, false);
