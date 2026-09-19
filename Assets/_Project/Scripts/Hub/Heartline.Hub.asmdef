@@ -1,7 +1,7 @@
 {
   "name": "Heartline.Hub",
   "rootNamespace": "Heartline.Hub",
-  "references": ["Heartline.Shared"],
+  "references": ["Heartline.Shared","Heartline.Save","Heartline.Analytics","Heartline.SyncMatch","Unity.TextMeshPro","UnityEngine.UI"],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

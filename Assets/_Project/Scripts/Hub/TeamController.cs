@@ -1,13 +1,18 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using TMPro;
 using Heartline.Save;
+using Heartline.Shared;
 
 namespace Heartline.Hub
 {
     public class TeamController : MonoBehaviour
     {
         [SerializeField] TMP_Text squadText;
+        [SerializeField] Text squadTextLegacy;
+
+        public void BindLegacy(Text squad) => squadTextLegacy = squad;
 
         void OnEnable() => Refresh();
 
@@ -15,10 +20,10 @@ namespace Heartline.Hub
         {
             var s = SaveService.Instance.Data.squad;
             var unlocked = string.Join(", ", SaveService.Instance.Data.unlockedAgents);
-            if (squadText)
-                squadText.text =
-                    $"Front: {s.front0}, {s.front1}\nMid: {s.mid0}, {s.mid1}\nBack: {s.back0}, {s.back1}\n" +
-                    $"Unlocked: {unlocked}\nSupport slot: LOCKED";
+            string msg =
+                $"Front: {s.front0}, {s.front1}\nMid: {s.mid0}, {s.mid1}\nBack: {s.back0}, {s.back1}\n" +
+                $"Unlocked: {unlocked}\nSupport slot: LOCKED";
+            HudText.Set(squadText, squadTextLegacy, msg);
         }
 
         public void ApplyDefaultLaneAdvice()

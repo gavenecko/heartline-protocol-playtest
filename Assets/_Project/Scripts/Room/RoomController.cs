@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using TMPro;
 using Heartline.Save;
 using Heartline.Shared;
@@ -12,13 +13,22 @@ namespace Heartline.Room
         [SerializeField] TMP_Text dialogueText;
         [SerializeField] TMP_Text affText;
         [SerializeField] TMP_Text energyText;
+        [SerializeField] Text dialogueTextLegacy;
+        [SerializeField] Text affTextLegacy;
+        [SerializeField] Text energyTextLegacy;
+
+        public void BindLegacy(Text dialogue, Text aff, Text energy)
+        {
+            dialogueTextLegacy = dialogue;
+            affTextLegacy = aff;
+            energyTextLegacy = energy;
+        }
 
         void OnEnable()
         {
             AnalyticsSink.Emit("room_enter", "agent_id=mira");
             Refresh();
-            if (dialogueText)
-                dialogueText.text = "Mira: Door's unlocked. That's rare. Come in.";
+            SetDialogue("Mira: Door's unlocked. That's rare. Come in. (SFW Aff 1–3 · adults 18+)");
             ClaimMorningIfAny();
         }
 
@@ -27,8 +37,9 @@ namespace Heartline.Room
             var d = SaveService.Instance.Data;
             SaveService.Instance.ApplyRegen();
             d.miraAffRank = Rank(d.miraAffXp);
-            if (affText) affText.text = $"Mira Aff {d.miraAffRank}/3  XP {d.miraAffXp}";
-            if (energyText) energyText.text = $"HE {d.heartEnergy}/{GameConstants.HeartEnergyCap}";
+            string next = d.miraAffRank >= 3 ? "cap" : (d.miraAffRank == 1 ? $"{GameConstants.AffRank2Xp}" : $"{GameConstants.AffRank3Xp}");
+            HudText.Set(affText, affTextLegacy, $"Mira Aff {d.miraAffRank}/{GameConstants.MaxAffRankSlice}  XP {d.miraAffXp} (→{next})");
+            HudText.Set(energyText, energyTextLegacy, $"HE {d.heartEnergy}/{GameConstants.HeartEnergyCap} · Tea×{d.sunwellTeaCount}");
         }
 
         public void Talk()
@@ -43,7 +54,7 @@ namespace Heartline.Room
                 }
                 else
                 {
-                    if (dialogueText) dialogueText.text = "Not enough Heart Energy.";
+                    SetDialogue("Not enough Heart Energy.");
                     Refresh();
                     return;
                 }
@@ -51,12 +62,14 @@ namespace Heartline.Room
             d.heartEnergy -= GameConstants.TalkCostHe;
             int before = Rank(d.miraAffXp);
             d.miraAffXp += GameConstants.TalkAffXp;
+            CapAffXp(d);
             int after = Rank(d.miraAffXp);
             d.miraAffRank = after;
-            if (dialogueText)
-                dialogueText.text = after == 1
-                    ? "Mira: Sync rates spike when you listen. Annoying scientific fact."
-                    : "Mira: Friendly is a soft word for covering your shift without billing you.";
+            SetDialogue(after == 1
+                ? "Mira: Sync rates spike when you listen. Annoying scientific fact."
+                : after == 2
+                    ? "Mira: Friendly is a soft word for covering your shift without billing you."
+                    : "Mira: Close. Don't make it weird — just stay.");
             AnalyticsSink.Emit("room_action", $"action=talk;xp={GameConstants.TalkAffXp};rank={after}");
             if (after > before) OnRankUp(after);
             SaveService.Instance.Save();
@@ -68,12 +81,12 @@ namespace Heartline.Room
             var d = SaveService.Instance.Data;
             if (Rank(d.miraAffXp) < 2)
             {
-                if (dialogueText) dialogueText.text = "Gifts unlock at Aff Rank 2.";
+                SetDialogue("Gifts unlock at Aff Rank 2 (Friendly). Talk more first.");
                 return;
             }
             if (d.heartEnergy < GameConstants.GiftCostHe)
             {
-                if (dialogueText) dialogueText.text = "Not enough Heart Energy.";
+                SetDialogue("Not enough Heart Energy.");
                 return;
             }
             bool preferred = d.sunwellTeaCount > 0;
@@ -84,12 +97,12 @@ namespace Heartline.Room
                 : GameConstants.GiftAffXp;
             int before = Rank(d.miraAffXp);
             d.miraAffXp += xp;
+            CapAffXp(d);
             int after = Rank(d.miraAffXp);
             d.miraAffRank = after;
-            if (dialogueText)
-                dialogueText.text = preferred
-                    ? "Mira: Sunwell Tea. You listened. Dangerous habit."
-                    : "Mira: Thanks. Not Corp pens — good.";
+            SetDialogue(preferred
+                ? "Mira: Sunwell Tea. You listened. Dangerous habit."
+                : "Mira: Thanks. Not Corp pens — good.");
             AnalyticsSink.Emit("room_action", $"action=gift;xp={xp};rank={after}");
             if (after > before) OnRankUp(after);
             SaveService.Instance.Save();
@@ -101,24 +114,25 @@ namespace Heartline.Room
             var d = SaveService.Instance.Data;
             if (Rank(d.miraAffXp) < 3)
             {
-                if (dialogueText) dialogueText.text = "Dates unlock at Aff Rank 3.";
+                SetDialogue("Dates unlock at Aff Rank 3 (Close).");
                 return;
             }
             if (d.datedMiraToday)
             {
-                if (dialogueText) dialogueText.text = "Already dated today.";
+                SetDialogue("Already dated today.");
                 return;
             }
             if (d.heartEnergy < GameConstants.DateCostHe)
             {
-                if (dialogueText) dialogueText.text = "Not enough Heart Energy.";
+                SetDialogue("Not enough Heart Energy.");
                 return;
             }
             d.heartEnergy -= GameConstants.DateCostHe;
             d.miraAffXp += GameConstants.DateAffXp;
+            CapAffXp(d);
             d.miraAffRank = Rank(d.miraAffXp);
             d.datedMiraToday = true;
-            if (dialogueText) dialogueText.text = "Mira: Pier lights. No badges. Rank Three — Close.";
+            SetDialogue("Mira: Pier lights. No badges. Rank Three — Close. (SFW outing)");
             AnalyticsSink.Emit("room_action", $"action=date;xp={GameConstants.DateAffXp};rank={d.miraAffRank}");
             SaveService.Instance.Save();
             Refresh();
@@ -127,7 +141,7 @@ namespace Heartline.Room
         public void Sleepover()
         {
             PlayerPrefs.SetInt("hp_sleepover_mira", 1);
-            if (dialogueText) dialogueText.text = "Sleepover set. Morning: +30 Aff XP.";
+            SetDialogue("Sleepover set. Next Room visit: morning +30 Aff XP. (SFW)");
             SaveService.Instance.Save();
         }
 
@@ -137,9 +151,10 @@ namespace Heartline.Room
             PlayerPrefs.SetInt("hp_sleepover_mira", 0);
             var d = SaveService.Instance.Data;
             d.miraAffXp += GameConstants.SleepoverMorningXp;
+            CapAffXp(d);
             d.miraAffRank = Rank(d.miraAffXp);
             SaveService.Instance.Save();
-            if (dialogueText) dialogueText.text = "Morning light. Mira left tea. +30 Aff XP.";
+            SetDialogue("Morning light. Mira left tea. +30 Aff XP.");
             Refresh();
         }
 
@@ -149,10 +164,16 @@ namespace Heartline.Room
             if (rank == 2)
             {
                 SaveService.Instance.Data.sunwellTeaCount += 2;
-                if (dialogueText) dialogueText.text += "\n[Aff Rank Up — Friendly. Gifts unlocked.]";
+                SetDialogue("Mira: Aff Rank Up — Friendly. Gifts unlocked. (+2 Sunwell Tea)");
             }
-            else if (rank == 3 && dialogueText)
-                dialogueText.text += "\n[Aff Rank Up — Close. Dates unlocked.]";
+            else if (rank == 3)
+                SetDialogue("Mira: Aff Rank Up — Close. Dates unlocked. Slice Aff cap reached.");
+        }
+
+        static void CapAffXp(HeartlineSave d)
+        {
+            if (d.miraAffXp > GameConstants.AffRank3Xp + 200)
+                d.miraAffXp = GameConstants.AffRank3Xp + 200;
         }
 
         static int Rank(int xp)
@@ -161,6 +182,8 @@ namespace Heartline.Room
             if (xp >= GameConstants.AffRank2Xp) return 2;
             return 1;
         }
+
+        void SetDialogue(string msg) => HudText.Set(dialogueText, dialogueTextLegacy, msg);
 
         public void Back() => SceneManager.LoadScene("02_Hub");
     }
