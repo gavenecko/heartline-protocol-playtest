@@ -199,4 +199,239 @@ namespace Heartline.Sim
             return utcNow >= done;
         }
     }
+
+    /// <summary>Mirrors Heartline.Shared.GrowthMath.</summary>
+    public static class GrowthMath
+    {
+        public const int MaxStars = 5;
+
+        public static int XpToNextLevel(int level)
+        {
+            if (level < 1) level = 1;
+            return 40 + 12 * level;
+        }
+
+        public static int LevelCapForStars(int stars)
+        {
+            if (stars < 1) stars = 1;
+            if (stars > 5) stars = 5;
+            return stars switch
+            {
+                1 => 40,
+                2 => 50,
+                3 => 60,
+                4 => 70,
+                5 => 80,
+                _ => 40
+            };
+        }
+
+        public static int BaseStarsForRarity(string rarity)
+        {
+            if (string.IsNullOrEmpty(rarity)) return 1;
+            return rarity.Trim().ToUpperInvariant() switch
+            {
+                "N" => 1,
+                "R" => 2,
+                "SR" => 3,
+                "SSR" => 4,
+                "UR" => 5,
+                _ => 1
+            };
+        }
+
+        public static string FormatStars(int stars)
+        {
+            if (stars < 1) stars = 1;
+            if (stars > 5) stars = 5;
+            return new string('★', stars);
+        }
+
+        public static int ApplyXp(ref int level, ref int xp, int gain, int levelCap)
+        {
+            if (gain <= 0) return 0;
+            if (levelCap < 1) levelCap = 1;
+            if (level > levelCap) level = levelCap;
+            if (level >= levelCap)
+            {
+                xp = 0;
+                return 0;
+            }
+            xp += gain;
+            int gained = 0;
+            while (level < levelCap)
+            {
+                int need = XpToNextLevel(level);
+                if (xp < need) break;
+                xp -= need;
+                level++;
+                gained++;
+            }
+            if (level >= levelCap)
+            {
+                level = levelCap;
+                xp = 0;
+            }
+            return gained;
+        }
+
+        public static string XpBar(int xp, int need, int width = 10)
+        {
+            if (need <= 0) need = 1;
+            if (width < 4) width = 4;
+            float t = Math.Clamp(xp / (float)need, 0f, 1f);
+            int filled = (int)Math.Round(t * width);
+            if (filled > width) filled = width;
+            return "[" + new string('█', filled) + new string('░', width - filled) + "]";
+        }
+
+        public static bool TryGetPromoteCost(int fromStars, out int fragments, out int lumaCoins, out int minAffRank)
+        {
+            fragments = 0;
+            lumaCoins = 0;
+            minAffRank = 0;
+            switch (fromStars)
+            {
+                case 1: fragments = 20; lumaCoins = 5_000; minAffRank = 0; return true;
+                case 2: fragments = 50; lumaCoins = 20_000; minAffRank = 0; return true;
+                case 3: fragments = 100; lumaCoins = 80_000; minAffRank = 2; return true;
+                case 4: fragments = 200; lumaCoins = 250_000; minAffRank = 4; return true;
+                default: return false;
+            }
+        }
+
+        public static bool TryPromote(
+            ref int stars,
+            ref int lumaCoins,
+            ref int fragments,
+            int affRank,
+            out int newLevelCap,
+            out string error)
+        {
+            newLevelCap = LevelCapForStars(stars);
+            error = null;
+            if (stars >= MaxStars)
+            {
+                error = "max";
+                return false;
+            }
+            if (!TryGetPromoteCost(stars, out int needFrag, out int needLuma, out int minAff))
+            {
+                error = "cost";
+                return false;
+            }
+            if (affRank < minAff)
+            {
+                error = "aff";
+                return false;
+            }
+            if (fragments < needFrag)
+            {
+                error = "frags";
+                return false;
+            }
+            if (lumaCoins < needLuma)
+            {
+                error = "luma";
+                return false;
+            }
+            fragments -= needFrag;
+            lumaCoins -= needLuma;
+            stars++;
+            newLevelCap = LevelCapForStars(stars);
+            return true;
+        }
+    }
+
+    public sealed class DailyMissionDef
+    {
+        public string Id;
+        public string Title;
+        public int Target;
+        public int RewardLuma;
+        public int RewardCrystals;
+        public int RewardTickets;
+    }
+
+    public static class DailyMissionMath
+    {
+        public static readonly DailyMissionDef[] Catalog =
+        {
+            new DailyMissionDef { Id = "clear_stage", Title = "Clear any stage", Target = 1, RewardLuma = 500 },
+            new DailyMissionDef { Id = "room_talk", Title = "Talk in Mira's Room", Target = 1, RewardLuma = 400 },
+            new DailyMissionDef { Id = "claim_job", Title = "Claim a Job payout", Target = 1, RewardLuma = 300, RewardCrystals = 50, RewardTickets = 1 }
+        };
+
+        public static string TodayUtc(DateTime utcNow) => utcNow.ToString("yyyy-MM-dd");
+
+        public static DailyMissionDef Get(string id)
+        {
+            foreach (var m in Catalog)
+                if (m.Id == id) return m;
+            return null;
+        }
+
+        public static bool EnsureDay(ref string dailyUtcDate, IDictionary<string, int> progress, ICollection<string> claimed, DateTime utcNow)
+        {
+            string today = TodayUtc(utcNow);
+            if (dailyUtcDate == today) return false;
+            dailyUtcDate = today;
+            progress?.Clear();
+            claimed?.Clear();
+            return true;
+        }
+
+        public static int GetProgress(IDictionary<string, int> progress, string id)
+        {
+            if (progress == null || string.IsNullOrEmpty(id)) return 0;
+            return progress.TryGetValue(id, out var n) ? n : 0;
+        }
+
+        public static void AddProgress(IDictionary<string, int> progress, string id, int amount, int target)
+        {
+            if (progress == null || string.IsNullOrEmpty(id) || amount <= 0) return;
+            progress.TryGetValue(id, out var cur);
+            int next = cur + amount;
+            if (target > 0 && next > target) next = target;
+            progress[id] = next;
+        }
+
+        public static bool IsComplete(IDictionary<string, int> progress, DailyMissionDef def) =>
+            def != null && GetProgress(progress, def.Id) >= def.Target;
+
+        public static bool IsClaimed(ICollection<string> claimed, string id) =>
+            claimed != null && !string.IsNullOrEmpty(id) && claimed.Contains(id);
+
+        public static bool TryClaim(
+            string id,
+            IDictionary<string, int> progress,
+            ICollection<string> claimed,
+            ref int lumaCoins,
+            ref int pulseCrystals,
+            ref int beginnerTickets,
+            out string error)
+        {
+            error = null;
+            var def = Get(id);
+            if (def == null) { error = "unknown"; return false; }
+            if (IsClaimed(claimed, id)) { error = "claimed"; return false; }
+            if (!IsComplete(progress, def)) { error = "incomplete"; return false; }
+            lumaCoins += def.RewardLuma;
+            pulseCrystals += def.RewardCrystals;
+            beginnerTickets += def.RewardTickets;
+            claimed.Add(id);
+            return true;
+        }
+
+        public static void Totals(out int luma, out int crystals, out int tickets)
+        {
+            luma = crystals = tickets = 0;
+            foreach (var m in Catalog)
+            {
+                luma += m.RewardLuma;
+                crystals += m.RewardCrystals;
+                tickets += m.RewardTickets;
+            }
+        }
+    }
 }

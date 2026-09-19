@@ -32,4 +32,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Project/Scenes/08_Battle.unity
     guid: 00000000000000000000000000000009
+  - enabled: 1
+    path: Assets/_Project/Scenes/09_Missions.unity
+    guid: 0000000000000000000000000000000a
   m_configObjects: {}

@@ -79,6 +79,7 @@ namespace Heartline.Meta
             bool bonus = !string.IsNullOrEmpty(def.PreferredAgentId) &&
                          string.Equals(slot.assignedAgentId, def.PreferredAgentId, StringComparison.OrdinalIgnoreCase);
             d.lumaCoins += yield;
+            d.AddDailyProgress("claim_job");
             slot.completeAtIso = null;
             string agent = slot.assignedAgentId;
             slot.assignedAgentId = null;
@@ -102,6 +103,7 @@ namespace Heartline.Meta
                 if (!JobMath.IsReady(slot.completeAtIso, DateTime.UtcNow)) continue;
                 int yield = JobMath.ComputePayout(def, slot.assignedAgentId);
                 d.lumaCoins += yield;
+                d.AddDailyProgress("claim_job");
                 total += yield;
                 claimed++;
                 sb.Append($"{def.DisplayName}+{yield} ");

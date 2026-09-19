@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -6,6 +7,7 @@ using TMPro;
 using Heartline.Save;
 using Heartline.Shared;
 using Heartline.App;
+using Heartline.Analytics;
 
 namespace Heartline.Hub
 {
@@ -13,6 +15,7 @@ namespace Heartline.Hub
     {
         [SerializeField] TMP_Text squadText;
         [SerializeField] Text squadTextLegacy;
+        string _selectedId = "mira";
 
         public void BindLegacy(Text squad) => squadTextLegacy = squad;
 
@@ -27,24 +30,112 @@ namespace Heartline.Hub
         {
             var d = SaveService.Instance.Data;
             var s = d.squad;
-            var unlocked = string.Join(", ", d.unlockedAgents);
             bool bond = BondMatrix.IsMiraIvyBondActive(SquadLogic.EnumerateSlots(
                 s.front0, s.front1, s.mid0, s.mid1, s.back0, s.back1));
             int filled = SquadLogic.CountFilled(s.front0, s.front1, s.mid0, s.mid1, s.back0, s.back1);
-            string msg =
-                $"Owned: {unlocked}\n" +
-                $"Squad {filled}/{SquadLogic.MaxSquadSize} (max 2/lane)\n" +
-                $"Front: [{Slot(s.front0)}] [{Slot(s.front1)}]\n" +
-                $"Mid:   [{Slot(s.mid0)}] [{Slot(s.mid1)}]\n" +
-                $"Back:  [{Slot(s.back0)}] [{Slot(s.back1)}]\n" +
-                $"Support slot: LOCKED\n" +
-                $"Bond Matrix: {(bond ? "Mira↔Ivy ACTIVE (+15% ATK once/battle)" : "Mira↔Ivy inactive (need both)")}";
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"Squad {filled}/{SquadLogic.MaxSquadSize} (max 2/lane)");
+            sb.AppendLine($"Front: [{Slot(s.front0)}] [{Slot(s.front1)}]");
+            sb.AppendLine($"Mid:   [{Slot(s.mid0)}] [{Slot(s.mid1)}]");
+            sb.AppendLine($"Back:  [{Slot(s.back0)}] [{Slot(s.back1)}]");
+            sb.AppendLine($"Bond: {(bond ? "Mira↔Ivy ACTIVE" : "Mira↔Ivy inactive")}");
+            sb.AppendLine();
+            sb.AppendLine("— Roster (Lv / ★ / XP) —");
+            if (d.unlockedAgents != null)
+            {
+                foreach (var id in d.unlockedAgents)
+                {
+                    var a = Ensure(d, id);
+                    int cap = GrowthMath.LevelCapForStars(a.stars);
+                    int need = a.level >= cap ? 1 : GrowthMath.XpToNextLevel(a.level);
+                    string bar = a.level >= cap
+                        ? "[██████████] MAX"
+                        : $"{GrowthMath.XpBar(a.xp, need, 8)} {a.xp}/{need}";
+                    string sel = id == _selectedId ? "►" : " ";
+                    int frags = d.GetFragments(id);
+                    sb.AppendLine($"{sel}{id}  Lv{a.level}/{cap}  {GrowthMath.FormatStars(a.stars)}  {bar}  frags {frags}");
+                }
+            }
+            sb.AppendLine();
+            sb.AppendLine($"Selected: {_selectedId} · Promote spends Echo Fragments + LC");
+            if (!string.IsNullOrEmpty(_statusNote))
+                sb.AppendLine(_statusNote);
             if (DialogueService.Instance != null && DialogueService.Instance.IsPlaying)
-                msg += "\n\n" + DialogueService.Instance.CurrentDisplay() + "\n[Advance Dialogue]";
-            HudText.Set(squadText, squadTextLegacy, msg);
+                sb.AppendLine().AppendLine(DialogueService.Instance.CurrentDisplay()).AppendLine("[Advance Dialogue]");
+            HudText.Set(squadText, squadTextLegacy, sb.ToString());
+        }
+
+        static AgentSave Ensure(HeartlineSave d, string id)
+        {
+            int stars = id switch
+            {
+                "mira" => 4,
+                "wren" => 3,
+                "ivy" => 2,
+                "juniper" => 2,
+                _ => 1
+            };
+            int level = id == "mira" ? 5 : 3;
+            var a = d.GetOrCreateAgent(id, level, stars);
+            if (a.stars < 1) a.stars = stars;
+            return a;
         }
 
         static string Slot(string id) => string.IsNullOrEmpty(id) ? "—" : id;
+
+        public void CycleSelected()
+        {
+            var d = SaveService.Instance.Data;
+            if (d.unlockedAgents == null || d.unlockedAgents.Count == 0) return;
+            int idx = d.unlockedAgents.IndexOf(_selectedId);
+            idx = (idx + 1) % d.unlockedAgents.Count;
+            _selectedId = d.unlockedAgents[idx];
+            Refresh();
+        }
+
+        string _statusNote;
+
+        public void PromoteSelected()
+        {
+            var d = SaveService.Instance.Data;
+            var a = Ensure(d, _selectedId);
+            int frags = d.GetFragments(_selectedId);
+            int luma = d.lumaCoins;
+            int stars = a.stars;
+            if (!GrowthMath.TryPromote(ref stars, ref luma, ref frags, d.miraAffRank, out int newCap, out var err))
+            {
+                _statusNote = $"Promote failed: {err}";
+                Refresh();
+                return;
+            }
+            d.lumaCoins = luma;
+            SetFragmentsAbsolute(d, _selectedId, frags);
+            a.stars = stars;
+            if (a.level > newCap)
+            {
+                a.level = newCap;
+                a.xp = 0;
+            }
+            _statusNote = $"Promoted {_selectedId} → {GrowthMath.FormatStars(stars)} (cap Lv{newCap})";
+            SaveService.Instance.Save();
+            AnalyticsSink.Emit("agent_promote", $"agent_id={_selectedId};stars={stars};cap={newCap}");
+            Refresh();
+        }
+
+        static void SetFragmentsAbsolute(HeartlineSave d, string agentId, int amount)
+        {
+            if (d.echoFragmentEntries == null) d.echoFragmentEntries = new List<string>();
+            for (int i = 0; i < d.echoFragmentEntries.Count; i++)
+            {
+                if (d.echoFragmentEntries[i] != null && d.echoFragmentEntries[i].StartsWith(agentId + ":"))
+                {
+                    d.echoFragmentEntries[i] = agentId + ":" + amount;
+                    return;
+                }
+            }
+            d.echoFragmentEntries.Add(agentId + ":" + amount);
+        }
 
         public void CycleSlot(string lane, int slotIndex)
         {

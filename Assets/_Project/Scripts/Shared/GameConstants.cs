@@ -3,8 +3,8 @@ namespace Heartline.Shared
     public static class GameConstants
     {
         public const string ProductName = "Heartline Protocol";
-        public const string SliceVersion = "0.2.0-slice";
-        public const int SaveSchemaVersion = 3;
+        public const string SliceVersion = "0.3.0-slice";
+        public const int SaveSchemaVersion = 4;
 
         public const int MaxAffRankSlice = 3;
         public const int AffRank2Xp = 100;

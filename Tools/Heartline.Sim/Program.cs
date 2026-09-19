@@ -34,6 +34,8 @@ static class Program
         TestJobPayouts();
         TestGiftShopSink();
         TestStageUnlockReason();
+        TestGrowthXpAndPromote();
+        TestDailyMissions();
 
         Console.WriteLine();
         Console.WriteLine($"Passed: {_passed}  Failed: {_failed}");
@@ -447,6 +449,80 @@ static class Program
         Assert(StageCombatMath.UnlockReason("1-B", cleared, false).Contains("1-10"), "unlock reason: 1-B needs boss");
         cleared.Add("1-1");
         Assert(StageCombatMath.UnlockReason("1-2", cleared, false) == null, "unlock reason: null when open");
+    }
+
+
+    static void TestGrowthXpAndPromote()
+    {
+        Assert(GrowthMath.LevelCapForStars(1) == 40, "growth: ★ cap 40");
+        Assert(GrowthMath.LevelCapForStars(2) == 50, "growth: ★★ cap 50");
+        Assert(GrowthMath.LevelCapForStars(3) == 60, "growth: ★★★ cap 60");
+        Assert(GrowthMath.LevelCapForStars(4) == 70, "growth: ★★★★ cap 70");
+        Assert(GrowthMath.LevelCapForStars(5) == 80, "growth: ★★★★★ cap 80");
+        Assert(GrowthMath.BaseStarsForRarity("R") == 2, "growth: R base ★★");
+        Assert(GrowthMath.BaseStarsForRarity("SSR") == 4, "growth: SSR base ★★★★");
+        Assert(GrowthMath.XpToNextLevel(1) == 52, "growth: xp curve L1→2 = 52");
+        Assert(GrowthMath.XpToNextLevel(10) == 160, "growth: xp curve L10→11 = 160");
+
+        int level = 5, xp = 0;
+        int gained = GrowthMath.ApplyXp(ref level, ref xp, 200, 50);
+        Assert(gained >= 1 && level > 5, "growth: apply xp levels up");
+        Assert(xp < GrowthMath.XpToNextLevel(level), "growth: leftover xp below next");
+
+        // Cap soft lock
+        level = 50; xp = 0;
+        gained = GrowthMath.ApplyXp(ref level, ref xp, 9999, 50);
+        Assert(gained == 0 && level == 50 && xp == 0, "growth: at ★★ cap no overflow");
+
+        // Promote ★★→★★★ costs
+        Assert(GrowthMath.TryGetPromoteCost(2, out int fr, out int lc, out int aff) && fr == 50 && lc == 20_000 && aff == 0, "growth: ★★→★★★ cost");
+        Assert(GrowthMath.TryGetPromoteCost(3, out fr, out lc, out aff) && fr == 100 && lc == 80_000 && aff == 2, "growth: ★★★→★★★★ Aff≥2");
+        Assert(GrowthMath.TryGetPromoteCost(4, out fr, out lc, out aff) && aff == 4, "growth: ★★★★→★★★★★ Aff≥4");
+
+        int stars = 2, luma = 25_000, frags = 60;
+        Assert(GrowthMath.TryPromote(ref stars, ref luma, ref frags, affRank: 1, out int cap, out _), "growth: promote ivy ★★→★★★");
+        Assert(stars == 3 && cap == 60 && frags == 10 && luma == 5_000, "growth: promote spends frags+LC");
+
+        stars = 4; luma = 300_000; frags = 250;
+        Assert(!GrowthMath.TryPromote(ref stars, ref luma, ref frags, affRank: 3, out _, out var err), "growth: block 5★ without Aff4");
+        Assert(err == "aff", "growth: Aff gate error");
+
+        Assert(GrowthMath.FormatStars(3) == "★★★", "growth: format stars");
+        Assert(GrowthMath.XpBar(50, 100, 10).Contains("█") && GrowthMath.XpBar(50, 100, 10).Contains("░"), "growth: xp bar");
+    }
+
+    static void TestDailyMissions()
+    {
+        Assert(DailyMissionMath.Catalog.Length == 3, "daily: 3 missions");
+        DailyMissionMath.Totals(out int luma, out int cry, out int tix);
+        Assert(luma == 1200 && cry == 50 && tix == 1, "daily: totals 1200 LC + 50 PC + 1 tix");
+
+        string day = "";
+        var progress = new Dictionary<string, int>();
+        var claimed = new List<string>();
+        var now = new DateTime(2026, 9, 19, 12, 0, 0, DateTimeKind.Utc);
+        Assert(DailyMissionMath.EnsureDay(ref day, progress, claimed, now), "daily: first ensure resets");
+        Assert(day == "2026-09-19", "daily: utc date");
+
+        DailyMissionMath.AddProgress(progress, "clear_stage", 1, 1);
+        Assert(DailyMissionMath.IsComplete(progress, DailyMissionMath.Get("clear_stage")), "daily: clear complete");
+
+        int walletLc = 0, walletPc = 0, walletTix = 0;
+        Assert(DailyMissionMath.TryClaim("clear_stage", progress, claimed, ref walletLc, ref walletPc, ref walletTix, out _), "daily: claim clear");
+        Assert(walletLc == 500 && claimed.Contains("clear_stage"), "daily: +500 LC");
+        Assert(!DailyMissionMath.TryClaim("clear_stage", progress, claimed, ref walletLc, ref walletPc, ref walletTix, out _), "daily: no double claim");
+
+        Assert(!DailyMissionMath.TryClaim("room_talk", progress, claimed, ref walletLc, ref walletPc, ref walletTix, out _), "daily: incomplete talk");
+        DailyMissionMath.AddProgress(progress, "room_talk", 1, 1);
+        DailyMissionMath.AddProgress(progress, "claim_job", 1, 1);
+        Assert(DailyMissionMath.TryClaim("room_talk", progress, claimed, ref walletLc, ref walletPc, ref walletTix, out _), "daily: claim talk");
+        Assert(DailyMissionMath.TryClaim("claim_job", progress, claimed, ref walletLc, ref walletPc, ref walletTix, out _), "daily: claim job");
+        Assert(walletLc == 1200 && walletPc == 50 && walletTix == 1, "daily: full day payout");
+
+        // Day roll resets
+        var next = now.AddDays(1);
+        Assert(DailyMissionMath.EnsureDay(ref day, progress, claimed, next), "daily: next day reset");
+        Assert(progress.Count == 0 && claimed.Count == 0 && day == "2026-09-20", "daily: cleared on roll");
     }
 
     static string FindAgentsJson()

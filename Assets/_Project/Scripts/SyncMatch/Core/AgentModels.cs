@@ -26,6 +26,7 @@ namespace Heartline.SyncMatch
         public float gaugeSharePower;
         public StatBlock statsLv1;
         public StatBlock statsLv60;
+        public int baseStars = 1;
         public int maxLevelSoft = 60;
         public List<string> preferredGifts = new List<string>();
 
