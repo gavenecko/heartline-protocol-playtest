@@ -100,6 +100,9 @@ namespace Heartline.App.RuntimeUi
             RuntimeUiKit.Button(canvas.transform, "Continue", "Continue",
                 new Vector2(0.15f, 0.24f), new Vector2(0.85f, 0.34f), Vector2.zero, Vector2.zero,
                 title.Continue);
+            RuntimeUiKit.Button(canvas.transform, "Reset", "Debug: Reset Save (dev)",
+                new Vector2(0.2f, 0.08f), new Vector2(0.8f, 0.16f), Vector2.zero, Vector2.zero,
+                title.DebugResetSave, new Color(0.35f, 0.2f, 0.25f));
         }
 
         static void BuildHub(Transform host)
@@ -131,7 +134,7 @@ namespace Heartline.App.RuntimeUi
             Nav("Mira's Room", hub.OpenRoom);
             Nav("Team", hub.OpenTeam);
             Nav("Beginner Banner", hub.OpenGacha);
-            Nav("Jobs (Café)", hub.OpenJobs);
+            Nav("Jobs (Café/Pier/Clinic)", hub.OpenJobs);
             Nav("Mail", hub.OpenMail);
             Nav("Settings", hub.OpenSettings);
             RuntimeUiKit.Button(canvas.transform, "DebugSTA", "Debug: refill STA/HE",
@@ -155,9 +158,7 @@ namespace Heartline.App.RuntimeUi
                 foreach (var s in stages)
                 {
                     bool unlocked = StageCombatMath.IsUnlocked(s.id, save.clearedStages, save.ch1Complete);
-                    bool cleared = save.clearedStages.Contains(s.id);
-                    string label = $"{s.id}  {s.name}  ({s.staminaCost} STA)" +
-                                   (cleared ? " ✓" : "") + (!unlocked ? " [LOCKED]" : "");
+                    string label = StageSelectController.FormatStageLabel(s, save);
                     var btn = RuntimeUiKit.Button(content, s.id, label,
                         Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, null);
                     var le = btn.gameObject.AddComponent<LayoutElement>();
@@ -188,10 +189,12 @@ namespace Heartline.App.RuntimeUi
                 new Vector2(0.1f, 0.23f), new Vector2(0.9f, 0.31f), Vector2.zero, Vector2.zero, room.Gift);
             RuntimeUiKit.Button(canvas.transform, "Date", "Date (−15 HE, Aff3)",
                 new Vector2(0.1f, 0.14f), new Vector2(0.9f, 0.22f), Vector2.zero, Vector2.zero, room.Date);
-            RuntimeUiKit.Button(canvas.transform, "Sleep", "Sleepover (morning +30)",
-                new Vector2(0.1f, 0.06f), new Vector2(0.55f, 0.13f), Vector2.zero, Vector2.zero, room.Sleepover);
+            RuntimeUiKit.Button(canvas.transform, "BuyTea", "Buy Tea (−500 LC)",
+                new Vector2(0.1f, 0.06f), new Vector2(0.48f, 0.13f), Vector2.zero, Vector2.zero, room.BuySunwellTea);
+            RuntimeUiKit.Button(canvas.transform, "Sleep", "Sleepover",
+                new Vector2(0.5f, 0.06f), new Vector2(0.72f, 0.13f), Vector2.zero, Vector2.zero, room.Sleepover);
             RuntimeUiKit.Button(canvas.transform, "Back", "Back",
-                new Vector2(0.58f, 0.06f), new Vector2(0.9f, 0.13f), Vector2.zero, Vector2.zero, room.Back);
+                new Vector2(0.74f, 0.06f), new Vector2(0.9f, 0.13f), Vector2.zero, Vector2.zero, room.Back);
         }
 
         static void BuildTeam(Transform host)
@@ -230,30 +233,40 @@ namespace Heartline.App.RuntimeUi
         {
             var canvas = RuntimeUiKit.CreateCanvas("GachaCanvas", host);
             var gacha = host.gameObject.AddComponent<GachaController>();
-            var rates = RuntimeUiKit.Label(canvas.transform, "Rates", "Rates", 24, TextAnchor.UpperLeft,
-                new Vector2(0.08f, 0.55f), new Vector2(0.92f, 0.92f), Vector2.zero, Vector2.zero);
-            var result = RuntimeUiKit.Label(canvas.transform, "Result", "", 24, TextAnchor.UpperLeft,
-                new Vector2(0.08f, 0.28f), new Vector2(0.92f, 0.54f), Vector2.zero, Vector2.zero);
+            var rates = RuntimeUiKit.Label(canvas.transform, "Rates", "Rates", 22, TextAnchor.UpperLeft,
+                new Vector2(0.08f, 0.58f), new Vector2(0.92f, 0.96f), Vector2.zero, Vector2.zero);
+            var result = RuntimeUiKit.Label(canvas.transform, "Result", "", 20, TextAnchor.UpperLeft,
+                new Vector2(0.08f, 0.32f), new Vector2(0.92f, 0.57f), Vector2.zero, Vector2.zero);
             gacha.BindLegacy(rates, result);
-            RuntimeUiKit.Button(canvas.transform, "Pull", "Free 10-pull (once)",
-                new Vector2(0.1f, 0.16f), new Vector2(0.9f, 0.26f), Vector2.zero, Vector2.zero, gacha.FreeTenPull);
+            RuntimeUiKit.Button(canvas.transform, "Free", "Free 10-pull (once)",
+                new Vector2(0.1f, 0.22f), new Vector2(0.9f, 0.30f), Vector2.zero, Vector2.zero, gacha.FreeTenPull);
+            RuntimeUiKit.Button(canvas.transform, "Tix", "10-pull · Echo Tickets",
+                new Vector2(0.1f, 0.14f), new Vector2(0.9f, 0.21f), Vector2.zero, Vector2.zero, gacha.PullWithTickets);
+            RuntimeUiKit.Button(canvas.transform, "Cry", "10-pull · 1600 Crystals",
+                new Vector2(0.1f, 0.06f), new Vector2(0.9f, 0.13f), Vector2.zero, Vector2.zero, gacha.PullWithCrystals);
             RuntimeUiKit.Button(canvas.transform, "Back", "Not Now / Back",
-                new Vector2(0.2f, 0.05f), new Vector2(0.8f, 0.14f), Vector2.zero, Vector2.zero, gacha.NotNow);
+                new Vector2(0.2f, 0.01f), new Vector2(0.8f, 0.05f), Vector2.zero, Vector2.zero, gacha.NotNow);
         }
 
         static void BuildJobs(Transform host)
         {
             var canvas = RuntimeUiKit.CreateCanvas("JobsCanvas", host);
             var jobs = host.gameObject.AddComponent<JobsController>();
-            var status = RuntimeUiKit.Label(canvas.transform, "Status", "Jobs", 28, TextAnchor.MiddleCenter,
-                new Vector2(0.08f, 0.45f), new Vector2(0.92f, 0.75f), Vector2.zero, Vector2.zero);
+            var status = RuntimeUiKit.Label(canvas.transform, "Status", "Jobs", 22, TextAnchor.UpperLeft,
+                new Vector2(0.05f, 0.46f), new Vector2(0.95f, 0.96f), Vector2.zero, Vector2.zero);
             jobs.BindLegacy(status);
-            RuntimeUiKit.Button(canvas.transform, "Assign", "Assign Café Shift",
-                new Vector2(0.1f, 0.32f), new Vector2(0.9f, 0.42f), Vector2.zero, Vector2.zero, jobs.AssignCafe);
-            RuntimeUiKit.Button(canvas.transform, "Claim", "Claim",
-                new Vector2(0.1f, 0.21f), new Vector2(0.9f, 0.31f), Vector2.zero, Vector2.zero, jobs.ClaimCafe);
+            RuntimeUiKit.Button(canvas.transform, "Cafe", "Assign Café (Wren +20%)",
+                new Vector2(0.05f, 0.36f), new Vector2(0.48f, 0.44f), Vector2.zero, Vector2.zero, jobs.AssignCafe);
+            RuntimeUiKit.Button(canvas.transform, "Pier", "Assign Pier (Ivy +20%)",
+                new Vector2(0.52f, 0.36f), new Vector2(0.95f, 0.44f), Vector2.zero, Vector2.zero, jobs.AssignPier);
+            RuntimeUiKit.Button(canvas.transform, "Clinic", "Assign Clinic (Juni +20%)",
+                new Vector2(0.05f, 0.27f), new Vector2(0.48f, 0.35f), Vector2.zero, Vector2.zero, jobs.AssignClinic);
+            RuntimeUiKit.Button(canvas.transform, "ClaimAll", "Claim All Ready",
+                new Vector2(0.52f, 0.27f), new Vector2(0.95f, 0.35f), Vector2.zero, Vector2.zero, jobs.ClaimAll);
+            RuntimeUiKit.Button(canvas.transform, "Claim", "Claim Café",
+                new Vector2(0.05f, 0.18f), new Vector2(0.48f, 0.26f), Vector2.zero, Vector2.zero, jobs.ClaimCafe);
             RuntimeUiKit.Button(canvas.transform, "Debug", "Debug: complete now",
-                new Vector2(0.1f, 0.12f), new Vector2(0.9f, 0.2f), Vector2.zero, Vector2.zero, jobs.DebugCompleteNow);
+                new Vector2(0.52f, 0.18f), new Vector2(0.95f, 0.26f), Vector2.zero, Vector2.zero, jobs.DebugCompleteNow);
             RuntimeUiKit.Button(canvas.transform, "Back", "Back",
                 new Vector2(0.2f, 0.03f), new Vector2(0.8f, 0.1f), Vector2.zero, Vector2.zero, jobs.Back);
         }

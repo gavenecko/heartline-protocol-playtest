@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Heartline.Save;
 using Heartline.Analytics;
+using Heartline.Shared;
 
 namespace Heartline.App
 {
@@ -21,6 +22,15 @@ namespace Heartline.App
         public void Continue()
         {
             SceneManager.LoadScene("02_Hub");
+        }
+
+        /// <summary>Dev-only: wipe save and reload title.</summary>
+        public void DebugResetSave()
+        {
+            SaveService.Instance.ResetAll();
+            PlayerPrefs.DeleteAll();
+            AnalyticsSink.Emit("debug_reset", $"schema={GameConstants.SaveSchemaVersion}");
+            SceneManager.LoadScene("01_Title");
         }
     }
 }

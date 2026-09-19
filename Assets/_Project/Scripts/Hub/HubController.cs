@@ -74,10 +74,15 @@ namespace Heartline.Hub
         {
             var d = SaveService.Instance.Data;
             SaveService.Instance.ApplyRegen();
-            HudText.Set(staminaText, staminaTextLegacy, $"STA {d.stamina}/{GameConstants.StaminaCap}");
-            HudText.Set(heartText, heartTextLegacy, $"HE {d.heartEnergy}/{GameConstants.HeartEnergyCap}");
+            long now = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            long staNext = EconomyRegen.SecondsUntilNext(d.stamina, d.lastStaminaUtc, now, GameConstants.StaminaCap, EconomyRegen.StaminaSecondsPerPoint);
+            long heNext = EconomyRegen.SecondsUntilNext(d.heartEnergy, d.lastHeartUtc, now, GameConstants.HeartEnergyCap, EconomyRegen.HeartSecondsPerPoint);
+            string staExtra = d.stamina >= GameConstants.StaminaCap ? " (full)" : (staNext > 0 ? $" (+1 {staNext / 60}m)" : " (+1 soon)");
+            string heExtra = d.heartEnergy >= GameConstants.HeartEnergyCap ? " (full)" : (heNext > 0 ? $" (+1 {heNext / 60}m)" : " (+1 soon)");
+            HudText.Set(staminaText, staminaTextLegacy, $"STA {d.stamina}/{GameConstants.StaminaCap}{staExtra}");
+            HudText.Set(heartText, heartTextLegacy, $"HE {d.heartEnergy}/{GameConstants.HeartEnergyCap}{heExtra}");
             HudText.Set(coinsText, coinsTextLegacy, $"LC {d.lumaCoins}");
-            HudText.Set(crystalsText, crystalsTextLegacy, $"PC {d.pulseCrystals}");
+            HudText.Set(crystalsText, crystalsTextLegacy, $"PC {d.pulseCrystals} · Tix {d.beginnerTickets}");
             string st = d.ch1Complete ? "Ch.1 Clear" : $"Progress {d.ch1Stage} · cleared {d.clearedStages.Count}";
             HudText.Set(statusText, statusTextLegacy, st);
         }

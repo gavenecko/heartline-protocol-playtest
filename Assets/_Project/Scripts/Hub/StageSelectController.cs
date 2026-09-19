@@ -27,6 +27,20 @@ namespace Heartline.Hub
 
         void Start() => BuildList();
 
+        public static string FormatStageLabel(StageDefinition s, HeartlineSave save)
+        {
+            bool unlocked = StageCombatMath.IsUnlocked(s.id, save.clearedStages, save.ch1Complete);
+            int stars = save.GetStageStars(s.id);
+            string starTxt = stars > 0 ? StageStarRating.FormatStars(stars) : "☆☆☆";
+            string lockTxt = "";
+            if (!unlocked)
+            {
+                var reason = StageCombatMath.UnlockReason(s.id, save.clearedStages, save.ch1Complete);
+                lockTxt = "  [LOCKED: " + (reason ?? "Locked") + "]";
+            }
+            return $"{s.id}  {s.name}  · {s.staminaCost} STA  · {starTxt}" + lockTxt;
+        }
+
         void BuildList()
         {
             var stages = ContentRegistry.Stages?.stages;
@@ -43,13 +57,11 @@ namespace Heartline.Hub
             }
 
             var save = SaveService.Instance.Data;
+            SaveService.Instance.ApplyRegen();
             foreach (var s in stages)
             {
                 bool unlocked = StageCombatMath.IsUnlocked(s.id, save.clearedStages, save.ch1Complete);
-                bool cleared = save.clearedStages.Contains(s.id);
-                string label = $"{s.id}  {s.name}  ({s.staminaCost} STA)" +
-                               (cleared ? " ✓" : "") +
-                               (!unlocked ? "  [LOCKED]" : "");
+                string label = FormatStageLabel(s, save);
 
                 if (stageButtonPrefab != null && listRoot != null)
                 {
@@ -64,7 +76,7 @@ namespace Heartline.Hub
                 }
             }
 
-            SetInfo("Select a stage. Clear in order 1-1 → 1-10. Optional 1-B after boss.");
+            SetInfo($"Select a stage. STA {save.stamina}/{GameConstants.StaminaCap}. ★ = best clear. Locked rows show unlock reason.");
         }
 
         public void RegisterRuntimeStageButton(Button btn, string stageId, string label, bool unlocked)
@@ -88,16 +100,20 @@ namespace Heartline.Hub
 
             if (!StageCombatMath.IsUnlocked(stageId, save.clearedStages, save.ch1Complete))
             {
-                SetInfo($"Locked — clear {StageCombatMath.PreviousStageId(stageId) ?? "prior"} first.");
+                SetInfo(StageCombatMath.UnlockReason(stageId, save.clearedStages, save.ch1Complete)
+                        ?? $"Locked — clear {StageCombatMath.PreviousStageId(stageId) ?? "prior"} first.");
                 return;
             }
             if (save.stamina < stage.staminaCost)
             {
-                SetInfo($"Not enough Stamina ({save.stamina}/{stage.staminaCost}).");
+                SetInfo($"Not enough Stamina ({save.stamina}/{stage.staminaCost}). Regen 1/{GameConstants.StaminaRegenMinutes} min.");
                 return;
             }
+            int stars = save.GetStageStars(stageId);
+            string best = stars > 0 ? StageStarRating.FormatStars(stars) : "none yet";
             PlayerPrefs.SetString("hp_pending_stage", stageId);
             AnalyticsSink.Emit("stage_start", $"stage_id={stageId}");
+            SetInfo($"Entering {stageId} · cost {stage.staminaCost} STA · best {best}");
             SceneManager.LoadScene("08_Battle");
         }
 
