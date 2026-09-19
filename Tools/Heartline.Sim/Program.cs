@@ -23,6 +23,8 @@ static class Program
         TestAgentAgesAdult();
         TestAffRankThresholds();
         TestRoomTalkGift();
+        TestStageCombatMath();
+        TestStageUnlockOrder();
 
         Console.WriteLine();
         Console.WriteLine($"Passed: {_passed}  Failed: {_failed}");
@@ -222,6 +224,32 @@ static class Program
         Assert(mira.AffRank == 3, "room: can reach Aff3 via talks");
         Assert(mira.TryDate(ref he, out xp) && xp == 100, "room: date at Aff3 +100");
         Assert(!mira.TryDate(ref he, out _), "room: date once per day");
+    }
+
+    
+    static void TestStageCombatMath()
+    {
+        Assert(StageCombatMath.EnemyHp(new StageDefinition { Id = "1-1", Type = "Story" }) == 900, "stage: 1-1 hp 900");
+        Assert(StageCombatMath.EnemyHp(new StageDefinition { Id = "1-5", Type = "Story" }) == 900 + 4 * 80, "stage: 1-5 hp scales");
+        Assert(StageCombatMath.EnemyHp(new StageDefinition { Id = "1-7", Type = "EliteLite" }) == 1800, "stage: elite hp");
+        Assert(StageCombatMath.EnemyHp(new StageDefinition { Id = "1-10", Type = "Boss" }) == 3500, "stage: boss hp");
+        Assert(StageCombatMath.EnemyAtk(new StageDefinition { Id = "1-10", Type = "Boss" }) == 110, "stage: boss atk");
+        Assert(StageCombatMath.StageOrdinal("1-1") == 0, "stage: ordinal 1-1");
+        Assert(StageCombatMath.StageOrdinal("1-10") == 9, "stage: ordinal 1-10");
+        Assert(StageCombatMath.PreviousStageId("1-5") == "1-4", "stage: prev of 1-5");
+        Assert(StageCombatMath.PreviousStageId("1-B") == "1-10", "stage: prev of 1-B");
+    }
+
+    static void TestStageUnlockOrder()
+    {
+        var cleared = new HashSet<string>();
+        Assert(StageCombatMath.IsUnlocked("1-1", cleared, false), "unlock: 1-1 open");
+        Assert(!StageCombatMath.IsUnlocked("1-2", cleared, false), "unlock: 1-2 locked");
+        cleared.Add("1-1");
+        Assert(StageCombatMath.IsUnlocked("1-2", cleared, false), "unlock: 1-2 after 1-1");
+        Assert(!StageCombatMath.IsUnlocked("1-B", cleared, false), "unlock: 1-B locked");
+        cleared.Add("1-10");
+        Assert(StageCombatMath.IsUnlocked("1-B", cleared, false), "unlock: 1-B after 1-10");
     }
 
     static string FindAgentsJson()

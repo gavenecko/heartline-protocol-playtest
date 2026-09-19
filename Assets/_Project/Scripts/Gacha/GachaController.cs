@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using TMPro;
 using Heartline.Save;
 using Heartline.Analytics;
+using Heartline.Shared;
 
 namespace Heartline.Gacha
 {
@@ -12,13 +14,21 @@ namespace Heartline.Gacha
     {
         [SerializeField] TMP_Text ratesText;
         [SerializeField] TMP_Text resultText;
+        [SerializeField] Text ratesTextLegacy;
+        [SerializeField] Text resultTextLegacy;
 
         static readonly string[] Pool = { "mira", "ivy", "juniper", "wren", "n_filler_a", "n_filler_b", "n_filler_c", "n_filler_d" };
 
+        public void BindLegacy(Text rates, Text result)
+        {
+            ratesTextLegacy = rates;
+            resultTextLegacy = result;
+        }
+
         void OnEnable()
         {
-            if (ratesText)
-                ratesText.text = "Beginner Banner (local stub)\nSSR 1% · SR 10% · R 40% · N 49%\nSoft pity display: SR@10 · SSR@30 · max 40\nNo IAP. Not Now has no penalty.";
+            HudText.Set(ratesText, ratesTextLegacy,
+                "Beginner Banner (local stub)\nSSR 1% · SR 10% · R 40% · N 49%\nSoft pity: SR@10 · SSR@30 · max 40\nNo IAP. Not Now has no penalty.");
             AnalyticsSink.Emit("gacha_open", "banner_id=beginner");
         }
 
@@ -27,17 +37,14 @@ namespace Heartline.Gacha
             var d = SaveService.Instance.Data;
             if (d.beginnerFreePullUsed)
             {
-                if (resultText) resultText.text = "Free sample already used.";
+                HudText.Set(resultText, resultTextLegacy, "Free sample already used.");
                 return;
             }
             d.beginnerFreePullUsed = true;
             var rng = new System.Random();
             var results = new List<string>();
             for (int i = 0; i < 10; i++)
-            {
-                // Guarantee SR-ish by pull 10: force wren or ivy on last if all N
                 results.Add(Pool[rng.Next(Pool.Length)]);
-            }
             if (results.TrueForAll(r => r.StartsWith("n_")))
                 results[9] = "wren";
             foreach (var id in results)
@@ -47,7 +54,7 @@ namespace Heartline.Gacha
             }
             SaveService.Instance.Save();
             AnalyticsSink.Emit("gacha_pull", $"banner_id=beginner;count=10;results={string.Join(',', results)}");
-            if (resultText) resultText.text = "Results: " + string.Join(", ", results);
+            HudText.Set(resultText, resultTextLegacy, "Results: " + string.Join(", ", results));
         }
 
         public void NotNow()

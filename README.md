@@ -4,42 +4,50 @@ Offline / SFW prototype of **Heartline Protocol**: Sync Match (match-3 + lanes +
 
 **Content policy:** All agents are adults **18+**. Juniper is **21**. Slice Aff caps at **3**. No NSFW assets or systems.
 
-## Open in Unity
+## Open in Unity (preferred)
 
 1. Install **Unity 6 LTS** (project pins `6000.0.32f1` in `ProjectSettings/ProjectVersion.txt` — use closest 6000.0 LTS if needed).
-2. Open folder: `/workspace/heartline-protocol` (or this repo root).
+2. Open folder: this repo root (`heartline-protocol`).
 3. Let Unity import TMP / uGUI packages from `Packages/manifest.json`.
 4. Open `Assets/_Project/Scenes/00_Boot.unity` and press Play.
-5. Wire scene UI (first open): each scene has a camera stub — add Canvas + TMP + buttons and bind the listed controllers (see below).
+5. **No Editor Canvas wiring required** — `SliceRuntimeBootstrap` builds Boot→Title→Hub→StageSelect→Battle→Room (and Team/Gacha/Jobs) UI at runtime with legacy uGUI Text.
 
 Portrait target: **1080×1920**.
 
-## Play path (design intent)
+## Play path
 
 1. **00_Boot** — Age gate (18+) → Title  
 2. **01_Title** — New Game (grants Mira)  
-3. **02_Hub** — currencies (Stamina / Heart Energy / Luma Coins / Pulse Crystals)  
-4. **03_StageSelect** — Chapter 1 stages `1-1`…`1-10` + `1-B`  
-5. **08_Battle** — 6×8 board, Assist Aim swap, Burst buttons, End Turn  
-6. After `1-1`: Ivy + Juniper unlock · After `1-5`: Wren unlock  
-7. **04_Room** — Mira Talk / Gift / Date / Sleepover (Aff 1–3 SFW)  
+3. **02_Hub** — STA / HE / Luma Coins / Pulse Crystals; nav to Stages, Mira Room, Team, Banner, Jobs, Mail, Settings  
+4. **03_StageSelect** — Chapter 1 stages `1-1`…`1-10` + `1-B` (sequential unlock)  
+5. **08_Battle** — 6×8 board (tap two adjacent gems), Assist Aim, Burst buttons, End Turn, Retreat  
+6. After `1-1`: Ivy + Juniper unlock · After `1-5`: Wren unlock · After `1-10`: Ch.1 complete  
+7. **04_Room** — Mira Talk / Gift / Date / Sleepover (Aff 1–3 SFW only)  
 8. **06_Gacha** / **07_Jobs** — Beginner soft banner + Café Shift stubs  
+
+Debug: Hub “refill STA/HE”; Jobs “complete now”.
 
 ## What’s implemented vs stubbed
 
 | Area | Status |
 |------|--------|
+| Runtime UI bootstrap (Boot→…→Battle/Room) | **Done** (no Editor wiring needed) |
 | Board 6×8, match≥3, cascades, 5 colors + Prism | **Done** (pure C# + Tools harness) |
 | Sync Gauge fill / Burst @100% + lock | **Done** |
 | 3-lane Front/Mid/Back modifiers | **Done** |
+| Stage combat sizing + sequential unlock (`StageCombatMath`) | **Done** |
 | Mira / Ivy / Juniper / Wren JSON kits | **Done** (`StreamingAssets/Tables/agents.json`) |
-| Ch.1 stage table | **Done** (`stages_ch1.json`) |
-| Battle / Hub / Room / Jobs / Gacha controllers | **Done** (code); scenes need Canvas wiring in Editor |
-| Local save JSON | **Done** |
+| Ch.1 stage table `1-1`…`1-10` + `1-B` | **Done** (`stages_ch1.json`) |
+| Battle loop: input, gauges, Burst, lanes, rewards, wipe/retreat | **Done** (logic + runtime board UI) |
+| Stages 1-1…1-5 playable in logic | **Done**; 1-6…1-10 + 1-B **data + logic ready** (same battle loop) |
+| Room Aff 1–3 SFW Talk/Gift/Date/Sleepover | **Done** |
+| Local save JSON + regen | **Done** |
 | Age gate + SFW flags | **Done** |
-| Live2D / final art / VO | **Stub** (PH palette hex only) |
+| Beginner banner free 10-pull / Café job | **Done** (local stubs) |
+| Live2D / final art / VO | **Stub** (PH palette / letter gems) |
 | Live server / IAP / Aff4+ / NSFW | **Out of slice** |
 | Bond skill Mira↔Ivy | **Data stub** |
+| Full TMP scene prefabs | **Stub** (runtime legacy Text path) |
 
 ## Verify combat math without Unity (Linux / CI)
 
@@ -49,11 +57,11 @@ Portrait target: **1080×1920**.
 cd Tools/Heartline.Sim && dotnet run -c Release
 ```
 
-Expected: **45 passed, 0 failed** (board matches, Prism wild, gauge burst + lock, combo curve, lane caps, agent ages ≥18, Aff thresholds, Room talk/gift/date).
+Expected: **59 passed, 0 failed** (board, Prism, gauge+lock, combo, lanes, ages ≥18, Aff thresholds, Room talk/gift/date, stage HP/unlock).
 
 ## Design docs
 
-Copied under `Docs/` (BUILD_READY, vertical slice, tech arch, FTUE, backlog, roster kits, art bible, economy).
+Under `Docs/` (BUILD_READY, vertical slice, tech arch, FTUE, backlog, roster kits, art bible, economy).
 
 ## Module map (asmdefs)
 

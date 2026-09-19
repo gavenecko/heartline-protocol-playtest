@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using Heartline.SyncMatch;
@@ -10,8 +8,8 @@ namespace Heartline.App
     {
         public static GameDataService Instance { get; private set; }
 
-        public AgentCatalog Agents { get; private set; }
-        public StageCatalog Stages { get; private set; }
+        public AgentCatalog Agents => ContentRegistry.Agents;
+        public StageCatalog Stages => ContentRegistry.Stages;
 
         void Awake()
         {
@@ -23,16 +21,13 @@ namespace Heartline.App
 
         public void Reload()
         {
-            Agents = LoadJson<AgentCatalog>("agents.json");
-            Stages = LoadJson<StageCatalog>("stages_ch1.json");
+            var agents = LoadJson<AgentCatalog>("agents.json");
+            var stages = LoadJson<StageCatalog>("stages_ch1.json");
+            ContentRegistry.Set(agents, stages);
             ValidateAges();
         }
 
-        public AgentDefinition GetAgent(string id)
-        {
-            if (Agents?.agents == null) return null;
-            return Agents.agents.Find(a => a.id == id);
-        }
+        public AgentDefinition GetAgent(string id) => ContentRegistry.GetAgent(id);
 
         void ValidateAges()
         {
@@ -52,35 +47,5 @@ namespace Heartline.App
             }
             return JsonUtility.FromJson<T>(File.ReadAllText(path));
         }
-    }
-
-    [Serializable]
-    public class StageCatalog
-    {
-        public int chapter = 1;
-        public List<StageDefinition> stages = new List<StageDefinition>();
-    }
-
-    [Serializable]
-    public class StageDefinition
-    {
-        public string id;
-        public string name;
-        public string type;
-        public int staminaCost;
-        public List<string> enemyTags = new List<string>();
-        public string teachingGoal;
-        public bool forceMiraBurst;
-        public string unlockAgentOnClear;
-        public bool setsCh1Complete;
-        public StageRewards rewards;
-    }
-
-    [Serializable]
-    public class StageRewards
-    {
-        public int lumaCoins;
-        public int xp;
-        public int crystals;
     }
 }

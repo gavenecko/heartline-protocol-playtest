@@ -1,7 +1,7 @@
 {
   "name": "Heartline.Room",
   "rootNamespace": "Heartline.Room",
-  "references": ["Heartline.Shared"],
+  "references": ["Heartline.Shared","Heartline.Save","Heartline.Analytics","Unity.TextMeshPro","UnityEngine.UI"],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
