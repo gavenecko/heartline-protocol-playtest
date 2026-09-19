@@ -43,13 +43,25 @@ namespace Heartline.SyncMatch
         bool _retreatArmed;
         bool _assistTipShown;
         int _phase = 1;
+        bool _showResults;
+        string _resultsSummary = "";
+        Text resultsTextLegacy;
+        readonly System.Collections.Generic.List<(string id, int beforeLv, int afterLv, int xp, int need, int cap)> _xpLines
+            = new System.Collections.Generic.List<(string, int, int, int, int, int)>();
+        int _rewardLc;
+        int _rewardPc;
+        int _rewardXp;
+        int _rewardStars;
+        int _rewardFrags;
+        string _fragAgentId;
+
 
         public string StageId => _stageId;
         public int EnemyHp => _enemyHp;
         public int SwapsLeft => _swapsLeft;
         public BoardSimulator Board => _board;
 
-        public void BindLegacy(Text board, Text log, Text enemy, Text gauge, Text lane = null, Text status = null)
+        public void BindLegacy(Text board, Text log, Text enemy, Text gauge, Text lane = null, Text status = null, Text results = null)
         {
             boardTextLegacy = board;
             logTextLegacy = log;
@@ -57,6 +69,7 @@ namespace Heartline.SyncMatch
             gaugeTextLegacy = gauge;
             laneTextLegacy = lane;
             statusTextLegacy = status;
+            resultsTextLegacy = results;
         }
 
         void Start()
@@ -136,7 +149,7 @@ namespace Heartline.SyncMatch
 
         public void OnCellClicked(int x, int y)
         {
-            if (_ended) return;
+            if (_ended || _showResults) return;
             if (_swapsLeft <= 0) { Note("No swaps left — End Turn."); return; }
             if (_sx == null) { _sx = x; _sy = y; Note($"Selected ({x},{y})"); Redraw(); return; }
             int x0 = _sx.Value, y0 = _sy.Value;
@@ -155,7 +168,7 @@ namespace Heartline.SyncMatch
 
         public void AssistAimSwap()
         {
-            if (_ended) return;
+            if (_ended || _showResults) return;
             if (!_assistTipShown)
             {
                 Note("Assist Aim: picks a valid ≥3 swap for you.");
@@ -226,7 +239,7 @@ namespace Heartline.SyncMatch
 
         public void FireBurst(string agentId)
         {
-            if (_ended) return;
+            if (_ended || _showResults) return;
             if (!_gauges.TryGetValue(agentId, out var g) || !_agents.TryGetValue(agentId, out var def)) return;
             if (!g.TryFireBurst(out _))
             {
@@ -274,7 +287,7 @@ namespace Heartline.SyncMatch
 
         public void EndTurn()
         {
-            if (_ended) return;
+            if (_ended || _showResults) return;
             _retreatArmed = false;
             Note("— Enemy Phase —");
             if (_enemyHp > 0 && _agents.Count > 0)
@@ -315,11 +328,14 @@ namespace Heartline.SyncMatch
                     save.stamina = Mathf.Max(0, save.stamina - _stage.staminaCost);
                 if (_stage.rewards != null)
                 {
-                    save.lumaCoins += _stage.rewards.lumaCoins;
-                    save.pulseCrystals += _stage.rewards.crystals;
-                    GrantSquadXp(_stage.rewards.xp);
-                    Note($"+{_stage.rewards.lumaCoins} LC · +{_stage.rewards.xp} XP" +
-                         (_stage.rewards.crystals > 0 ? $" · +{_stage.rewards.crystals} PC" : ""));
+                    _rewardLc = _stage.rewards.lumaCoins;
+                    _rewardPc = _stage.rewards.crystals;
+                    _rewardXp = _stage.rewards.xp;
+                    save.lumaCoins += _rewardLc;
+                    save.pulseCrystals += _rewardPc;
+                    GrantSquadXp(_rewardXp);
+                    Note($"+{_rewardLc} LC · +{_rewardXp} XP" +
+                         (_rewardPc > 0 ? $" · +{_rewardPc} PC" : ""));
                 }
                 if (!save.clearedStages.Contains(_stageId)) save.clearedStages.Add(_stageId);
                 save.ch1Stage = _stageId;
@@ -349,13 +365,16 @@ namespace Heartline.SyncMatch
             int threshold = StageStarRating.ThresholdForStageType(stype);
             int stars = StageStarRating.Rate(alive, _turnsTaken, threshold);
             save.SetStageStars(_stageId, stars);
+            _rewardStars = stars;
+            GrantClearFragments(stars);
             Note($"Clear {StageStarRating.FormatStars(stars)} (alive {alive}, turns {_turnsTaken}/{threshold})");
             if (DialogueService.Instance != null)
                 DialogueService.Instance.TryStartTrigger("post_stage", _stageId);
 
+            save.AddDailyProgress("clear_stage");
             SaveService.Instance.Save();
             AnalyticsSink.Emit("stage_clear", $"stage_id={_stageId}");
-            Invoke(nameof(BackToHub), 1.2f);
+            ShowResultsOverlay();
         }
 
         void Lose()
@@ -370,6 +389,7 @@ namespace Heartline.SyncMatch
 
         void GrantSquadXp(int xp)
         {
+            _xpLines.Clear();
             if (xp <= 0) return;
             var save = SaveService.Instance.Data;
             foreach (var id in _agents.Keys)
@@ -377,25 +397,89 @@ namespace Heartline.SyncMatch
                 EnsureAgentSave(id);
                 var a = save.agents.Find(x => x.id == id);
                 if (a == null) continue;
-                a.xp += xp;
-                while (a.xp >= 100 && a.level < 60)
-                {
-                    a.xp -= 100;
-                    a.level++;
-                }
+                int before = a.level;
+                int cap = GrowthMath.LevelCapForStars(a.stars < 1 ? 1 : a.stars);
+                GrowthMath.ApplyXp(ref a.level, ref a.xp, xp, cap);
+                int need = a.level >= cap ? 1 : GrowthMath.XpToNextLevel(a.level);
+                _xpLines.Add((id, before, a.level, a.xp, need, cap));
             }
+        }
+
+        void GrantClearFragments(int stageStars)
+        {
+            _rewardFrags = 0;
+            _fragAgentId = null;
+            if (stageStars <= 0 || _agents.Count == 0) return;
+            // Slice: ★ earned → Echo Fragments for first squad member (promote fuel).
+            string id = null;
+            foreach (var k in _agents.Keys) { id = k; break; }
+            if (string.IsNullOrEmpty(id)) return;
+            EnsureAgentSave(id);
+            SaveService.Instance.Data.AddFragments(id, stageStars);
+            _rewardFrags = stageStars;
+            _fragAgentId = id;
+        }
+
+        void ShowResultsOverlay()
+        {
+            _showResults = true;
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("══ RESULTS ══");
+            sb.AppendLine($"{_stageId}  {StageStarRating.FormatStars(_rewardStars)}");
+            sb.AppendLine($"+{_rewardLc} Luma Coins");
+            if (_rewardPc > 0) sb.AppendLine($"+{_rewardPc} Pulse Crystals");
+            sb.AppendLine($"+{_rewardXp} Squad XP");
+            if (_rewardFrags > 0)
+                sb.AppendLine($"+{_rewardFrags} Echo Fragments → {_fragAgentId}");
+            sb.AppendLine();
+            foreach (var row in _xpLines)
+            {
+                string bar = row.afterLv >= row.cap
+                    ? "[██████████] MAX"
+                    : $"{GrowthMath.XpBar(row.xp, row.need)} {row.xp}/{row.need}";
+                string lvl = row.beforeLv == row.afterLv
+                    ? $"Lv{row.afterLv}/{row.cap}"
+                    : $"Lv{row.beforeLv}→{row.afterLv}/{row.cap}";
+                sb.AppendLine($"{row.id}  {lvl}  {bar}");
+            }
+            sb.AppendLine();
+            sb.AppendLine("[Continue] → Hub");
+            _resultsSummary = sb.ToString();
+            if (resultsTextLegacy != null)
+            {
+                resultsTextLegacy.gameObject.SetActive(true);
+                resultsTextLegacy.text = _resultsSummary;
+            }
+            Note("Results ready — tap Continue.");
+            Redraw();
+        }
+
+        public void DismissResults()
+        {
+            if (!_showResults) return;
+            _showResults = false;
+            SceneManager.LoadScene("02_Hub");
         }
 
         static void EnsureAgentSave(string id)
         {
             var save = SaveService.Instance.Data;
-            if (save.agents.Exists(x => x.id == id)) return;
-            save.agents.Add(new AgentSave { id = id, level = id == "mira" ? 5 : 3 });
+            int stars = id switch
+            {
+                "mira" => 4,
+                "wren" => 3,
+                "ivy" => 2,
+                "juniper" => 2,
+                _ => 1
+            };
+            int level = id == "mira" ? 5 : 3;
+            var a = save.GetOrCreateAgent(id, level, stars);
+            if (a.stars < 1) a.stars = stars;
         }
 
         public void Retreat()
         {
-            if (_ended) return;
+            if (_ended || _showResults) return;
             if (!_retreatArmed)
             {
                 _retreatArmed = true;
@@ -462,7 +546,9 @@ namespace Heartline.SyncMatch
                 laneTextLegacy.text = "Lanes " + string.Join(" · ", lanes);
             }
             if (statusTextLegacy != null && _stage != null)
-                statusTextLegacy.text = $"{_stage.id} {_stage.name}";
+                statusTextLegacy.text = _showResults ? "VICTORY — Results" : $"{_stage.id} {_stage.name}";
+            if (resultsTextLegacy != null && _showResults)
+                resultsTextLegacy.text = _resultsSummary;
         }
     }
 }

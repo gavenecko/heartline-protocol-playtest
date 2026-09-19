@@ -71,6 +71,7 @@ namespace Heartline.Room
                     ? "Mira: Friendly is a soft word for covering your shift without billing you."
                     : "Mira: Close. Don't make it weird — just stay.");
             AnalyticsSink.Emit("room_action", $"action=talk;xp={GameConstants.TalkAffXp};rank={after}");
+            d.AddDailyProgress("room_talk");
             if (after > before) OnRankUp(after);
             SaveService.Instance.Save();
             Refresh();

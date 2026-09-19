@@ -92,6 +92,7 @@ namespace Heartline.Hub
         public void OpenTeam() => SceneManager.LoadScene("05_Team");
         public void OpenGacha() => SceneManager.LoadScene("06_Gacha");
         public void OpenJobs() => SceneManager.LoadScene("07_Jobs");
+        public void OpenMissions() => SceneManager.LoadScene("09_Missions");
 
         public void OpenMail()
         {

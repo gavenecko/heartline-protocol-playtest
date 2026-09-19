@@ -63,6 +63,7 @@ namespace Heartline.App.RuntimeUi
                 case "06_Gacha": BuildGacha(host); break;
                 case "07_Jobs": BuildJobs(host); break;
                 case "08_Battle": BuildBattle(host); break;
+                case "09_Missions": BuildMissions(host); break;
             }
         }
 
@@ -123,18 +124,19 @@ namespace Heartline.App.RuntimeUi
             hub.BindLegacy(sta, he, coins, crystals, status);
             hub.RefreshHud();
 
-            float y = 0.62f;
+            float y = 0.64f;
             void Nav(string label, UnityEngine.Events.UnityAction action)
             {
                 RuntimeUiKit.Button(canvas.transform, label, label,
-                    new Vector2(0.12f, y - 0.07f), new Vector2(0.88f, y), Vector2.zero, Vector2.zero, action);
-                y -= 0.085f;
+                    new Vector2(0.12f, y - 0.055f), new Vector2(0.88f, y), Vector2.zero, Vector2.zero, action);
+                y -= 0.068f;
             }
             Nav("Stages", hub.OpenStages);
             Nav("Mira's Room", hub.OpenRoom);
             Nav("Team", hub.OpenTeam);
             Nav("Beginner Banner", hub.OpenGacha);
             Nav("Jobs (Café/Pier/Clinic)", hub.OpenJobs);
+            Nav("Daily Missions", hub.OpenMissions);
             Nav("Mail", hub.OpenMail);
             Nav("Settings", hub.OpenSettings);
             RuntimeUiKit.Button(canvas.transform, "DebugSTA", "Debug: refill STA/HE",
@@ -219,11 +221,17 @@ namespace Heartline.App.RuntimeUi
             SlotBtn("Cycle Back 0", team.CycleBack0);
             SlotBtn("Cycle Back 1", team.CycleBack1);
 
+            RuntimeUiKit.Button(canvas.transform, "Select", "Cycle Selected Agent",
+                new Vector2(0.05f, 0.14f), new Vector2(0.48f, 0.19f), Vector2.zero, Vector2.zero,
+                team.CycleSelected);
+            RuntimeUiKit.Button(canvas.transform, "Promote", "Promote Selected ★",
+                new Vector2(0.52f, 0.14f), new Vector2(0.95f, 0.19f), Vector2.zero, Vector2.zero,
+                team.PromoteSelected, new Color(0.91f, 0.78f, 0.48f));
             RuntimeUiKit.Button(canvas.transform, "Advice", "Apply lane advice",
-                new Vector2(0.05f, 0.08f), new Vector2(0.48f, 0.14f), Vector2.zero, Vector2.zero,
+                new Vector2(0.05f, 0.08f), new Vector2(0.48f, 0.13f), Vector2.zero, Vector2.zero,
                 team.ApplyDefaultLaneAdvice);
             RuntimeUiKit.Button(canvas.transform, "Dlg", "Advance Dialogue",
-                new Vector2(0.52f, 0.08f), new Vector2(0.95f, 0.14f), Vector2.zero, Vector2.zero,
+                new Vector2(0.52f, 0.08f), new Vector2(0.95f, 0.13f), Vector2.zero, Vector2.zero,
                 team.AdvanceDialogue);
             RuntimeUiKit.Button(canvas.transform, "Back", "Back",
                 new Vector2(0.2f, 0.02f), new Vector2(0.8f, 0.07f), Vector2.zero, Vector2.zero, team.Back);
@@ -289,7 +297,11 @@ namespace Heartline.App.RuntimeUi
                 new Vector2(0.56f, 0.38f), new Vector2(0.98f, 0.72f), Vector2.zero, Vector2.zero);
             var lane = RuntimeUiKit.Label(canvas.transform, "Lane", "Lanes", 18, TextAnchor.MiddleLeft,
                 new Vector2(0.02f, 0.33f), new Vector2(0.98f, 0.38f), Vector2.zero, Vector2.zero);
-            battle.BindLegacy(board, log, enemy, gauge, lane, status);
+            var results = RuntimeUiKit.Label(canvas.transform, "Results", "", 22, TextAnchor.UpperLeft,
+                new Vector2(0.08f, 0.2f), new Vector2(0.92f, 0.85f), Vector2.zero, Vector2.zero,
+                new Color(0.91f, 0.78f, 0.48f));
+            results.gameObject.SetActive(false);
+            battle.BindLegacy(board, log, enemy, gauge, lane, status, results);
 
             var grid = new GameObject("GemGrid");
             grid.transform.SetParent(canvas.transform, false);
@@ -334,6 +346,9 @@ namespace Heartline.App.RuntimeUi
             RuntimeUiKit.Button(canvas.transform, "Retreat", "Retreat",
                 new Vector2(0.8f, 0.04f), new Vector2(0.98f, 0.11f), Vector2.zero, Vector2.zero,
                 battle.Retreat, new Color(0.4f, 0.2f, 0.25f));
+            RuntimeUiKit.Button(canvas.transform, "Continue", "Continue (Results)",
+                new Vector2(0.58f, 0.01f), new Vector2(0.98f, 0.035f), Vector2.zero, Vector2.zero,
+                battle.DismissResults, new Color(0.18f, 0.55f, 0.35f));
         }
     }
 

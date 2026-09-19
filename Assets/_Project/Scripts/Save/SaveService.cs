@@ -39,6 +39,11 @@ namespace Heartline.Save
         public List<string> echoFragmentEntries = new List<string>(); // "mira:50"
         public List<JobSlotSave> jobSlots = new List<JobSlotSave>();
 
+        // Daily missions (UTC day)
+        public string dailyUtcDate = "";
+        public List<string> dailyProgressEntries = new List<string>(); // "clear_stage:1"
+        public List<string> dailyClaimedIds = new List<string>();
+
         // Legacy single-slot fields (migrated into jobSlots)
         public string cafeJobCompleteAtIso;
         public string cafeAssignedAgentId;
@@ -118,6 +123,34 @@ namespace Heartline.Save
             echoFragmentEntries.Add(agentId + ":" + (cur + amount));
         }
 
+        public bool TrySpendFragments(string agentId, int amount)
+        {
+            if (string.IsNullOrEmpty(agentId) || amount <= 0) return false;
+            int cur = GetFragments(agentId);
+            if (cur < amount) return false;
+            int next = cur - amount;
+            if (echoFragmentEntries == null) echoFragmentEntries = new List<string>();
+            for (int i = 0; i < echoFragmentEntries.Count; i++)
+            {
+                if (echoFragmentEntries[i] != null && echoFragmentEntries[i].StartsWith(agentId + ":"))
+                {
+                    echoFragmentEntries[i] = agentId + ":" + next;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public AgentSave GetOrCreateAgent(string id, int defaultLevel = 1, int defaultStars = 1)
+        {
+            if (agents == null) agents = new List<AgentSave>();
+            foreach (var a in agents)
+                if (a != null && a.id == id) return a;
+            var created = new AgentSave { id = id, level = defaultLevel, stars = defaultStars, xp = 0 };
+            agents.Add(created);
+            return created;
+        }
+
         public JobSlotSave GetOrCreateJobSlot(string jobId)
         {
             if (jobSlots == null) jobSlots = new List<JobSlotSave>();
@@ -133,7 +166,6 @@ namespace Heartline.Save
             if (jobSlots == null) jobSlots = new List<JobSlotSave>();
             foreach (var def in JobMath.Catalog)
                 GetOrCreateJobSlot(def.Id);
-            // Migrate legacy café fields
             if (!string.IsNullOrEmpty(cafeJobCompleteAtIso))
             {
                 var cafe = GetOrCreateJobSlot("cafe_shift");
@@ -145,6 +177,51 @@ namespace Heartline.Save
                 cafeJobCompleteAtIso = null;
                 cafeAssignedAgentId = null;
             }
+        }
+
+        public Dictionary<string, int> DailyProgressMap()
+        {
+            var map = new Dictionary<string, int>();
+            if (dailyProgressEntries == null) return map;
+            foreach (var e in dailyProgressEntries)
+            {
+                if (string.IsNullOrEmpty(e)) continue;
+                var parts = e.Split(':');
+                if (parts.Length == 2 && int.TryParse(parts[1], out var n))
+                    map[parts[0]] = n;
+            }
+            return map;
+        }
+
+        public void WriteDailyProgress(Dictionary<string, int> map)
+        {
+            dailyProgressEntries = new List<string>();
+            if (map == null) return;
+            foreach (var kv in map)
+                dailyProgressEntries.Add(kv.Key + ":" + kv.Value);
+        }
+
+        public void EnsureDailyDay(DateTime utcNow)
+        {
+            if (dailyProgressEntries == null) dailyProgressEntries = new List<string>();
+            if (dailyClaimedIds == null) dailyClaimedIds = new List<string>();
+            var progress = DailyProgressMap();
+            var claimed = new List<string>(dailyClaimedIds);
+            if (DailyMissionMath.EnsureDay(ref dailyUtcDate, progress, claimed, utcNow))
+            {
+                WriteDailyProgress(progress);
+                dailyClaimedIds = claimed;
+            }
+        }
+
+        public void AddDailyProgress(string missionId, int amount = 1)
+        {
+            EnsureDailyDay(DateTime.UtcNow);
+            var def = DailyMissionMath.Get(missionId);
+            int target = def != null ? def.Target : 1;
+            var progress = DailyProgressMap();
+            DailyMissionMath.AddProgress(progress, missionId, amount, target);
+            WriteDailyProgress(progress);
         }
     }
 
@@ -162,6 +239,7 @@ namespace Heartline.Save
         public string id;
         public int level = 1;
         public int xp;
+        public int stars = 1;
     }
 
     [Serializable]
@@ -180,7 +258,8 @@ namespace Heartline.Save
         public static SaveService Instance { get; private set; }
         public HeartlineSave Data { get; private set; }
 
-        string PathFile => System.IO.Path.Combine(Application.persistentDataPath, "heartline_save_v3.json");
+        string PathFile => System.IO.Path.Combine(Application.persistentDataPath, "heartline_save_v4.json");
+        string LegacyPathV3 => System.IO.Path.Combine(Application.persistentDataPath, "heartline_save_v3.json");
         string LegacyPath => System.IO.Path.Combine(Application.persistentDataPath, "heartline_save_v1.json");
 
         void Awake()
@@ -193,7 +272,9 @@ namespace Heartline.Save
 
         public void LoadOrCreate()
         {
-            string path = File.Exists(PathFile) ? PathFile : (File.Exists(LegacyPath) ? LegacyPath : null);
+            string path = File.Exists(PathFile) ? PathFile
+                : (File.Exists(LegacyPathV3) ? LegacyPathV3
+                : (File.Exists(LegacyPath) ? LegacyPath : null));
             if (path != null)
             {
                 try
@@ -209,6 +290,7 @@ namespace Heartline.Save
             }
             else Data = NewGame();
             ApplyRegen();
+            Data.EnsureDailyDay(DateTime.UtcNow);
         }
 
         static void Migrate(HeartlineSave d)
@@ -218,10 +300,28 @@ namespace Heartline.Save
             if (d.echoFragmentEntries == null) d.echoFragmentEntries = new List<string>();
             if (d.squad == null) d.squad = new SquadSave();
             if (d.jobSlots == null) d.jobSlots = new List<JobSlotSave>();
+            if (d.agents == null) d.agents = new List<AgentSave>();
+            if (d.dailyProgressEntries == null) d.dailyProgressEntries = new List<string>();
+            if (d.dailyClaimedIds == null) d.dailyClaimedIds = new List<string>();
+            if (d.dailyUtcDate == null) d.dailyUtcDate = "";
+            foreach (var a in d.agents)
+            {
+                if (a == null) continue;
+                if (a.stars < 1) a.stars = DefaultStarsFor(a.id);
+            }
             d.EnsureJobSlots();
             if (d.schema < GameConstants.SaveSchemaVersion)
                 d.schema = GameConstants.SaveSchemaVersion;
         }
+
+        static int DefaultStarsFor(string id) => id switch
+        {
+            "mira" => 4,
+            "wren" => 3,
+            "ivy" => 2,
+            "juniper" => 2,
+            _ => 1
+        };
 
         public HeartlineSave NewGame()
         {
@@ -233,7 +333,7 @@ namespace Heartline.Save
                 lastHeartUtc = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                 agents = new List<AgentSave>
                 {
-                    new AgentSave { id = "mira", level = 5 }
+                    new AgentSave { id = "mira", level = 5, stars = 4 }
                 },
                 squad = new SquadSave
                 {
@@ -247,7 +347,10 @@ namespace Heartline.Save
                 seenDialogueIds = new List<string>(),
                 stageStarEntries = new List<string>(),
                 echoFragmentEntries = new List<string>(),
-                jobSlots = new List<JobSlotSave>()
+                jobSlots = new List<JobSlotSave>(),
+                dailyUtcDate = DailyMissionMath.TodayUtc(DateTime.UtcNow),
+                dailyProgressEntries = new List<string>(),
+                dailyClaimedIds = new List<string>()
             };
             s.EnsureJobSlots();
             return s;
@@ -263,6 +366,7 @@ namespace Heartline.Save
         public void ResetAll()
         {
             if (File.Exists(PathFile)) File.Delete(PathFile);
+            if (File.Exists(LegacyPathV3)) File.Delete(LegacyPathV3);
             if (File.Exists(LegacyPath)) File.Delete(LegacyPath);
             Data = NewGame();
             Save();

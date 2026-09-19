@@ -130,5 +130,51 @@
     "instant_cocoa_t1": 400,
     "herbal_sachet_t1": 400
   },
-  "saveSchema": 3
+  "saveSchema": 4,
+  "growth": {
+    "levelCapsByStars": {
+      "1": 40,
+      "2": 50,
+      "3": 60,
+      "4": 70,
+      "5": 80
+    },
+    "xpToNext": "40 + 12 * level",
+    "promote": {
+      "1to2": {
+        "fragments": 20,
+        "lumaCoins": 5000
+      },
+      "2to3": {
+        "fragments": 50,
+        "lumaCoins": 20000
+      },
+      "3to4": {
+        "fragments": 100,
+        "lumaCoins": 80000,
+        "minAff": 2
+      },
+      "4to5": {
+        "fragments": 200,
+        "lumaCoins": 250000,
+        "minAff": 4
+      }
+    }
+  },
+  "dailyMissions": {
+    "clear_stage": {
+      "target": 1,
+      "luma": 500
+    },
+    "room_talk": {
+      "target": 1,
+      "luma": 400
+    },
+    "claim_job": {
+      "target": 1,
+      "luma": 300,
+      "crystals": 50,
+      "tickets": 1
+    }
+  }
 }
