@@ -127,3 +127,9 @@ Empty folders are kept with `.gitkeep`. Exact filenames: `Docs/PLACEHOLDER_ART_S
 ---
 
 *Heartline Protocol art kickoff · 0.5.0-slice-freeze · 2026-09-19*
+
+---
+
+## AI draft pass (2026-09-19)
+
+Grok image-gen **draft** T0 bust / fullbody / sd for Mira, Ivy, Juniper, Wren landed under `Assets/_Project/Art/Characters/*/t0_*.png`. Treat as editable placeholders — replace any file in-place; same filenames. Not final production art.
