@@ -25,11 +25,88 @@ static class Program
         TestRoomTalkGift();
         TestStageCombatMath();
         TestStageUnlockOrder();
+        TestDialogueRunner();
+        TestStageStarRating();
+        TestBondMatrix();
+        TestSquadLogic();
 
         Console.WriteLine();
         Console.WriteLine($"Passed: {_passed}  Failed: {_failed}");
         return _failed == 0 ? 0 : 1;
     }
+
+    
+    static void TestDialogueRunner()
+    {
+        var catalog = new DialogueCatalog
+        {
+            sequences = new System.Collections.Generic.List<DialogueSequence>
+            {
+                new DialogueSequence
+                {
+                    id = "title_new",
+                    trigger = "title_new",
+                    once = true,
+                    lines = new System.Collections.Generic.List<DialogueLine>
+                    {
+                        new DialogueLine { speaker = "Mira", text = "Hello, {Handler}." }
+                    }
+                },
+                new DialogueSequence
+                {
+                    id = "pre_1_1",
+                    trigger = "pre_stage",
+                    stageId = "1-1",
+                    once = true,
+                    lines = new System.Collections.Generic.List<DialogueLine>
+                    {
+                        new DialogueLine { speaker = "System", text = "Fight!" }
+                    }
+                }
+            }
+        };
+        var runner = new DialogueRunner(catalog);
+        runner.HandlerName = "Alex";
+        Assert(runner.TryStart("title_new", out var pb), "dialogue: start title_new");
+        Assert(pb.TryCurrent(out var sp, out var tx) && sp == "Mira" && tx.Contains("Alex"), "dialogue: handler token");
+        Assert(!pb.Advance(), "dialogue: single line finishes");
+        runner.Complete(pb);
+        Assert(runner.HasSeen("title_new"), "dialogue: marked seen");
+        Assert(!runner.TryStart("title_new", out _), "dialogue: once blocks replay");
+        Assert(runner.TryStartByTrigger("pre_stage", "1-1", out var pre), "dialogue: trigger+stage");
+        Assert(pre.SequenceId == "pre_1_1", "dialogue: stage-filtered id");
+    }
+
+    static void TestStageStarRating()
+    {
+        Assert(StageStarRating.Rate(1, 3, 8) == 1, "stars: 1 alive → 1");
+        Assert(StageStarRating.Rate(2, 9, 8) == 2, "stars: 2 alive slow → 2");
+        Assert(StageStarRating.Rate(3, 5, 8) == 3, "stars: 3 alive fast → 3");
+        Assert(StageStarRating.ThresholdForStageType("Boss") == 12, "stars: boss threshold");
+        Assert(StageStarRating.FormatStars(3) == "★★★", "stars: format 3");
+    }
+
+    static void TestBondMatrix()
+    {
+        Assert(BondMatrix.IsMiraIvyBondActive(new[] { "mira", "ivy", "wren" }), "bond: mira+ivy");
+        Assert(!BondMatrix.IsMiraIvyBondActive(new[] { "mira", "wren" }), "bond: missing ivy");
+        Assert(System.Math.Abs(BondMatrix.AtkMultiplier(true, false) - 1.15f) < 0.001f, "bond: atk buff");
+        Assert(System.Math.Abs(BondMatrix.AtkMultiplier(true, true) - 1f) < 0.001f, "bond: consumed");
+    }
+
+    static void TestSquadLogic()
+    {
+        string f0 = "", f1 = "", m0 = "mira", m1 = "", b0 = "", b1 = "";
+        var unlocked = new System.Collections.Generic.List<string> { "mira", "ivy", "juniper", "wren" };
+        Assert(SquadLogic.TryAssign("juniper", "Front", 0, unlocked, ref f0, ref f1, ref m0, ref m1, ref b0, ref b1), "squad: assign juniper front");
+        Assert(SquadLogic.TryAssign("ivy", "Front", 1, unlocked, ref f0, ref f1, ref m0, ref m1, ref b0, ref b1), "squad: assign ivy front");
+        Assert(SquadLogic.TryAssign("wren", "Back", 0, unlocked, ref f0, ref f1, ref m0, ref m1, ref b0, ref b1), "squad: assign wren");
+        Assert(SquadLogic.CountFilled(f0, f1, m0, m1, b0, b1) <= SquadLogic.MaxSquadSize, "squad: filled ≤ max");
+        var next = SquadLogic.NextOption(f0, unlocked, SquadLogic.OccupiedExcept(f0, f0, f1, m0, m1, b0, b1));
+        Assert(next != null, "squad: next option");
+        Assert(SquadLogic.TryAssign("mira", "Mid", 0, unlocked, ref f0, ref f1, ref m0, ref m1, ref b0, ref b1), "squad: reassign mira");
+    }
+
 
     static void Assert(bool cond, string name)
     {
@@ -251,6 +328,28 @@ static class Program
         cleared.Add("1-10");
         Assert(StageCombatMath.IsUnlocked("1-B", cleared, false), "unlock: 1-B after 1-10");
     }
+
+    
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+    
+
+
+
+
 
     static string FindAgentsJson()
     {

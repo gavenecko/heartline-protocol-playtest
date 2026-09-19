@@ -48,6 +48,8 @@ namespace Heartline.App
                 new GameObject("ContentFlags").AddComponent<ContentFlagsService>();
             if (SaveService.Instance == null)
                 new GameObject("Save").AddComponent<SaveService>();
+            if (DialogueService.Instance == null)
+                new GameObject("Dialogue").AddComponent<DialogueService>();
             if (GameDataService.Instance == null)
                 new GameObject("GameData").AddComponent<GameDataService>();
         }

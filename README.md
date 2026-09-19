@@ -42,11 +42,14 @@ Debug: Hub “refill STA/HE”; Jobs “complete now”.
 | Stages 1-1…1-5 playable in logic | **Done**; 1-6…1-10 + 1-B **data + logic ready** (same battle loop) |
 | Room Aff 1–3 SFW Talk/Gift/Date/Sleepover | **Done** |
 | Local save JSON + regen | **Done** |
+| FTUE DialogueRunner + Ch.1 JSON (SFW 18+) | **Done** |
+| Battle polish (phases, Assist tip, stars, retreat confirm) | **Done** |
+| Team screen 4-slot + lane cycle + save | **Done** |
 | Age gate + SFW flags | **Done** |
 | Beginner banner free 10-pull / Café job | **Done** (local stubs) |
 | Live2D / final art / VO | **Stub** (PH palette / letter gems) |
 | Live server / IAP / Aff4+ / NSFW | **Out of slice** |
-| Bond skill Mira↔Ivy | **Data stub** |
+| Bond Matrix Mira↔Ivy | **Done** (once/battle +15% ATK if both in squad) |
 | Full TMP scene prefabs | **Stub** (runtime legacy Text path) |
 
 ## Verify combat math without Unity (Linux / CI)
@@ -57,7 +60,7 @@ Debug: Hub “refill STA/HE”; Jobs “complete now”.
 cd Tools/Heartline.Sim && dotnet run -c Release
 ```
 
-Expected: **59 passed, 0 failed** (board, Prism, gauge+lock, combo, lanes, ages ≥18, Aff thresholds, Room talk/gift/date, stage HP/unlock).
+Expected: **81 passed, 0 failed** (board, Prism, gauge+lock, combo, lanes, ages ≥18, Aff thresholds, Room talk/gift/date, stage HP/unlock, FTUE dialogue runner, star rating, Bond Matrix, squad logic).
 
 ## Design docs
 

@@ -43,6 +43,8 @@ namespace Heartline.App.RuntimeUi
                 new GameObject("ContentFlags").AddComponent<ContentFlagsService>();
             if (SaveService.Instance == null)
                 new GameObject("Save").AddComponent<SaveService>();
+            if (DialogueService.Instance == null)
+                new GameObject("Dialogue").AddComponent<DialogueService>();
             if (GameDataService.Instance == null)
                 new GameObject("GameData").AddComponent<GameDataService>();
             ContentFlagsService.Instance.Load();
@@ -196,14 +198,32 @@ namespace Heartline.App.RuntimeUi
         {
             var canvas = RuntimeUiKit.CreateCanvas("TeamCanvas", host);
             var team = host.gameObject.AddComponent<TeamController>();
-            var squad = RuntimeUiKit.Label(canvas.transform, "Squad", "Squad", 28, TextAnchor.UpperLeft,
-                new Vector2(0.08f, 0.35f), new Vector2(0.92f, 0.9f), Vector2.zero, Vector2.zero);
+            var squad = RuntimeUiKit.Label(canvas.transform, "Squad", "Squad", 26, TextAnchor.UpperLeft,
+                new Vector2(0.05f, 0.42f), new Vector2(0.95f, 0.92f), Vector2.zero, Vector2.zero);
             team.BindLegacy(squad);
+
+            float y = 0.36f;
+            void SlotBtn(string label, UnityEngine.Events.UnityAction action)
+            {
+                RuntimeUiKit.Button(canvas.transform, label, label,
+                    new Vector2(0.05f, y - 0.045f), new Vector2(0.95f, y), Vector2.zero, Vector2.zero, action);
+                y -= 0.05f;
+            }
+            SlotBtn("Cycle Front 0", team.CycleFront0);
+            SlotBtn("Cycle Front 1", team.CycleFront1);
+            SlotBtn("Cycle Mid 0", team.CycleMid0);
+            SlotBtn("Cycle Mid 1", team.CycleMid1);
+            SlotBtn("Cycle Back 0", team.CycleBack0);
+            SlotBtn("Cycle Back 1", team.CycleBack1);
+
             RuntimeUiKit.Button(canvas.transform, "Advice", "Apply lane advice",
-                new Vector2(0.1f, 0.18f), new Vector2(0.9f, 0.28f), Vector2.zero, Vector2.zero,
+                new Vector2(0.05f, 0.08f), new Vector2(0.48f, 0.14f), Vector2.zero, Vector2.zero,
                 team.ApplyDefaultLaneAdvice);
+            RuntimeUiKit.Button(canvas.transform, "Dlg", "Advance Dialogue",
+                new Vector2(0.52f, 0.08f), new Vector2(0.95f, 0.14f), Vector2.zero, Vector2.zero,
+                team.AdvanceDialogue);
             RuntimeUiKit.Button(canvas.transform, "Back", "Back",
-                new Vector2(0.2f, 0.05f), new Vector2(0.8f, 0.14f), Vector2.zero, Vector2.zero, team.Back);
+                new Vector2(0.2f, 0.02f), new Vector2(0.8f, 0.07f), Vector2.zero, Vector2.zero, team.Back);
         }
 
         static void BuildGacha(Transform host)
