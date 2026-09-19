@@ -59,11 +59,15 @@ namespace Heartline.Meta
                 if (statusTextLegacy != null) statusTextLegacy.text += "\n\n" + err;
                 return;
             }
+            if (floor >= 10)
+                SaveService.Instance.UnlockAgent("velvet");
             SaveService.Instance.Save();
             AnalyticsSink.Emit("tower_clear", $"floor={floor};cp={d.towerLastCheckpoint}");
             Refresh();
             if (statusTextLegacy != null)
-                statusTextLegacy.text += $"\n\nCleared floor {floor}." + (TowerMath.IsCheckpoint(floor) ? " Checkpoint saved." : "");
+                var bonus = (floor >= 10 && SaveService.Instance.Data.unlockedAgents != null && SaveService.Instance.Data.unlockedAgents.Contains("velvet"))
+                    ? " Secret agent Velvet Noir unlocked!" : "";
+                statusTextLegacy.text += $"\n\nCleared floor {floor}." + (TowerMath.IsCheckpoint(floor) ? " Checkpoint saved." : "") + bonus;
         }
 
         public void FailNext()

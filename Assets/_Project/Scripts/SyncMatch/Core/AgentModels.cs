@@ -29,6 +29,10 @@ namespace Heartline.SyncMatch
         public int baseStars = 1;
         public int maxLevelSoft = 60;
         public List<string> preferredGifts = new List<string>();
+        public string roleBlurb;
+        public string contentNotes;
+        public bool secret;
+        public bool codexHiddenUntilUnlock;
 
         public bool IsAdult => age >= 18;
 

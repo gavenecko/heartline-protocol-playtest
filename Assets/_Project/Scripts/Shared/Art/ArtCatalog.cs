@@ -35,6 +35,7 @@ namespace Heartline.Shared
             { "helene", "helene_voss" },
             { "hex", "zara_hex_montal" },
             { "aveline", "aveline_roux" },
+            { "velvet", "velvet_noir" },
             // folder-name aliases
             { "mira_solenne", "mira_solenne" },
             { "ivy_cross", "ivy_cross" },
@@ -48,6 +49,7 @@ namespace Heartline.Shared
             { "helene_voss", "helene_voss" },
             { "zara_hex_montal", "zara_hex_montal" },
             { "aveline_roux", "aveline_roux" },
+            { "velvet_noir", "velvet_noir" },
         };
 
         public static bool TryGetFolder(string agentId, out string folder)
