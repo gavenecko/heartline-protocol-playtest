@@ -26,6 +26,8 @@ namespace Heartline.Sim
 
         public bool TryGet(string agentId, out Lane lane) => _agent.TryGetValue(agentId, out lane);
 
+        public List<string> Occupants(Lane lane) => _occ[lane];
+
         public static float DamageDealtMod(Lane lane) => lane switch
         {
             Lane.Front => 1.15f,

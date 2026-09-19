@@ -15,9 +15,15 @@ namespace Heartline.Meta
     {
         [SerializeField] TMP_Text statusText;
         [SerializeField] Text statusTextLegacy;
+        [SerializeField] RawImage portraitImage;
         int _index;
 
-        public void BindLegacy(Text status) => statusTextLegacy = status;
+        public void BindLegacy(Text status, RawImage portrait = null)
+        {
+            statusTextLegacy = status;
+            if (portrait != null) portraitImage = portrait;
+            Refresh();
+        }
 
         void OnEnable()
         {
@@ -73,6 +79,8 @@ namespace Heartline.Meta
                 sb.AppendLine($"  {(u ? "★" : "·")} {x.displayName} ({x.rarity}/{x.role})");
             }
             HudText.Set(statusText, statusTextLegacy, sb.ToString());
+            if (portraitImage != null && agents.Count > 0)
+                ArtLoader.ApplyBust(portraitImage, agents[_index].id);
         }
 
         public void Next()
