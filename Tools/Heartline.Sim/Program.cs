@@ -36,6 +36,8 @@ static class Program
         TestStageUnlockReason();
         TestGrowthXpAndPromote();
         TestDailyMissions();
+        TestArenaMarks();
+        TestTowerFloorUnlock();
 
         Console.WriteLine();
         Console.WriteLine($"Passed: {_passed}  Failed: {_failed}");
@@ -269,15 +271,18 @@ static class Program
         Assert(path != null, "agents: json found");
         if (path == null) return;
         var catalog = AgentDefinition.LoadFromJson(File.ReadAllText(path));
-        Assert(catalog.Agents.Count == 4, "agents: 4 slice agents");
+        Assert(catalog.Agents.Count == 12, "agents: launch 12 in data");
         foreach (var a in catalog.Agents)
         {
             Assert(a.Age >= 18, $"agents: {a.Id} age {a.Age} ≥ 18");
             if (a.Id == "juniper")
                 Assert(a.Age == 21, "agents: Juniper is 21");
         }
-        var ids = catalog.Agents.Select(a => a.Id).OrderBy(x => x).ToArray();
-        Assert(ids.SequenceEqual(new[] { "ivy", "juniper", "mira", "wren" }), "agents: mira ivy juniper wren");
+        var playable = new[] { "mira", "ivy", "juniper", "wren" };
+        foreach (var id in playable)
+            Assert(catalog.Agents.Any(a => a.Id == id), $"agents: playable {id}");
+        Assert(catalog.Agents.Any(a => a.Id == "aveline" && a.Age == 30), "agents: aveline teaser adult");
+        Assert(catalog.Agents.All(a => a.Age >= 18), "agents: no underage");
     }
 
     static void TestAffRankThresholds()
@@ -523,6 +528,78 @@ static class Program
         var next = now.AddDays(1);
         Assert(DailyMissionMath.EnsureDay(ref day, progress, claimed, next), "daily: next day reset");
         Assert(progress.Count == 0 && claimed.Count == 0 && day == "2026-09-20", "daily: cleared on roll");
+    }
+
+
+    static void TestArenaMarks()
+    {
+        Assert(ArenaMath.FreeAttacksPerDay == 3, "arena: 3 free attacks");
+        Assert(ArenaMath.MarksForRecord(2, 1) == 2 * ArenaMath.MarksWin + ArenaMath.MarksLoss, "arena: marks record");
+        Assert(ArenaMath.FakeOpponents.Length == 3, "arena: 3 fake defense teams");
+
+        string day = "";
+        int used = 0, marks = 0;
+        var now = new DateTime(2026, 9, 19, 15, 0, 0, DateTimeKind.Utc);
+        Assert(ArenaMath.EnsureDay(ref day, ref used, now), "arena: day ensure");
+        Assert(day == "2026-09-19", "arena: utc day");
+
+        // Win vs Quay Rookie
+        var opp = ArenaMath.PickOpponent(used);
+        Assert(ArenaMath.TryAttack(ref used, ref marks, opp, out bool won, out int gained, out _), "arena: attack 1");
+        Assert(won && gained == ArenaMath.MarksWin && marks == ArenaMath.MarksWin, "arena: win marks");
+        Assert(used == 1 && ArenaMath.AttacksRemaining(used) == 2, "arena: 2 left");
+
+        // Second win
+        opp = ArenaMath.PickOpponent(used);
+        Assert(ArenaMath.TryAttack(ref used, ref marks, opp, out won, out gained, out _), "arena: attack 2");
+        // Third — Aurelia Scout loses
+        opp = ArenaMath.PickOpponent(used);
+        Assert(opp.HandlerName == "Aurelia Scout", "arena: third opp scout");
+        Assert(ArenaMath.TryAttack(ref used, ref marks, opp, out won, out gained, out _), "arena: attack 3");
+        Assert(!won && gained == ArenaMath.MarksLoss, "arena: loss marks");
+        Assert(ArenaMath.AttacksRemaining(used) == 0, "arena: cap reached");
+        Assert(!ArenaMath.TryAttack(ref used, ref marks, opp, out _, out _, out var err) && err == "cap", "arena: 4th blocked");
+
+        string week = ArenaMath.WeekKeyUtc(now);
+        Assert(week.StartsWith("2026-W"), "arena: week key");
+
+        // Day roll resets attacks
+        Assert(ArenaMath.EnsureDay(ref day, ref used, now.AddDays(1)), "arena: next day");
+        Assert(used == 0 && day == "2026-09-20", "arena: attacks reset");
+    }
+
+    static void TestTowerFloorUnlock()
+    {
+        Assert(TowerMath.SliceFloorCount == 10 && TowerMath.FullFloorCount == 50, "tower: 10 of 50");
+        Assert(TowerMath.CheckpointEvery == 5, "tower: CP every 5");
+        Assert(TowerMath.DefaultStaminaCost(1) == 6 && TowerMath.DefaultStaminaCost(6) == 8, "tower: STA costs");
+        Assert(TowerMath.IsCheckpoint(5) && TowerMath.IsCheckpoint(10) && !TowerMath.IsCheckpoint(4), "tower: checkpoint flags");
+        Assert(TowerMath.IsFloorUnlocked(1, 0) && !TowerMath.IsFloorUnlocked(2, 0), "tower: only F1 unlocked at start");
+        Assert(TowerMath.CanAttempt(1, 0) && !TowerMath.CanAttempt(2, 0), "tower: attempt F1 only");
+
+        int sta = 120, highest = 0, cp = 0;
+        for (int f = 1; f <= 5; f++)
+        {
+            Assert(TowerMath.TryClear(f, ref sta, ref highest, ref cp, 10, TowerMath.DefaultStaminaCost, out _), $"tower: clear F{f}");
+        }
+        Assert(highest == 5 && cp == 5, "tower: CP5 after clear");
+        Assert(sta == 120 - 5 * 6, "tower: STA spent 1–5");
+
+        // Clear 6–7 then fail 8 → snap to CP5
+        Assert(TowerMath.TryClear(6, ref sta, ref highest, ref cp, 10, TowerMath.DefaultStaminaCost, out _), "tower: clear F6");
+        Assert(TowerMath.TryClear(7, ref sta, ref highest, ref cp, 10, TowerMath.DefaultStaminaCost, out _), "tower: clear F7");
+        Assert(highest == 7 && cp == 5, "tower: mid-band no new CP");
+        Assert(TowerMath.TryFail(8, ref sta, ref highest, cp, 10, TowerMath.DefaultStaminaCost, out _), "tower: fail F8");
+        Assert(highest == 5, "tower: fail snaps to CP");
+        Assert(TowerMath.NextAttemptAfterFail(cp) == 6, "tower: next after fail = 6");
+        Assert(TowerMath.CanAttempt(6, highest), "tower: resume at F6");
+
+        // Climb to slice cap
+        for (int f = 6; f <= 10; f++)
+            Assert(TowerMath.TryClear(f, ref sta, ref highest, ref cp, 10, TowerMath.DefaultStaminaCost, out _), $"tower: clear F{f} b");
+        Assert(highest == 10 && cp == 10, "tower: slice complete CP10");
+        Assert(!TowerMath.CanAttempt(11, highest), "tower: F11 beyond slice");
+        Assert(!TowerMath.TryClear(10, ref sta, ref highest, ref cp, 10, TowerMath.DefaultStaminaCost, out var doneErr) && doneErr == "complete", "tower: no re-clear at cap");
     }
 
     static string FindAgentsJson()

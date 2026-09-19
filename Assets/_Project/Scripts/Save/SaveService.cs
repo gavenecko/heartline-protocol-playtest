@@ -44,6 +44,15 @@ namespace Heartline.Save
         public List<string> dailyProgressEntries = new List<string>(); // "clear_stage:1"
         public List<string> dailyClaimedIds = new List<string>();
 
+        // Arena stub
+        public int arenaMarks;
+        public int arenaAttacksUsed;
+        public string arenaUtcDate = "";
+
+        // Tower / Abyss stub (slice: 10 of 50)
+        public int towerHighestCleared;
+        public int towerLastCheckpoint;
+
         // Legacy single-slot fields (migrated into jobSlots)
         public string cafeJobCompleteAtIso;
         public string cafeAssignedAgentId;
@@ -258,7 +267,8 @@ namespace Heartline.Save
         public static SaveService Instance { get; private set; }
         public HeartlineSave Data { get; private set; }
 
-        string PathFile => System.IO.Path.Combine(Application.persistentDataPath, "heartline_save_v4.json");
+        string PathFile => System.IO.Path.Combine(Application.persistentDataPath, "heartline_save_v5.json");
+        string LegacyPathV4 => System.IO.Path.Combine(Application.persistentDataPath, "heartline_save_v4.json");
         string LegacyPathV3 => System.IO.Path.Combine(Application.persistentDataPath, "heartline_save_v3.json");
         string LegacyPath => System.IO.Path.Combine(Application.persistentDataPath, "heartline_save_v1.json");
 
@@ -273,8 +283,9 @@ namespace Heartline.Save
         public void LoadOrCreate()
         {
             string path = File.Exists(PathFile) ? PathFile
+                : (File.Exists(LegacyPathV4) ? LegacyPathV4
                 : (File.Exists(LegacyPathV3) ? LegacyPathV3
-                : (File.Exists(LegacyPath) ? LegacyPath : null));
+                : (File.Exists(LegacyPath) ? LegacyPath : null)));
             if (path != null)
             {
                 try
@@ -304,6 +315,7 @@ namespace Heartline.Save
             if (d.dailyProgressEntries == null) d.dailyProgressEntries = new List<string>();
             if (d.dailyClaimedIds == null) d.dailyClaimedIds = new List<string>();
             if (d.dailyUtcDate == null) d.dailyUtcDate = "";
+            if (d.arenaUtcDate == null) d.arenaUtcDate = "";
             foreach (var a in d.agents)
             {
                 if (a == null) continue;
@@ -350,7 +362,14 @@ namespace Heartline.Save
                 jobSlots = new List<JobSlotSave>(),
                 dailyUtcDate = DailyMissionMath.TodayUtc(DateTime.UtcNow),
                 dailyProgressEntries = new List<string>(),
-                dailyClaimedIds = new List<string>()
+                dailyClaimedIds = new List<string>(),
+                arenaMarks = 0,
+                arenaAttacksUsed = 0,
+                arenaUtcDate = "",
+                towerHighestCleared = 0,
+                towerLastCheckpoint = 0,
+                sfwMode = true,
+                ageGatePassed = false
             };
             s.EnsureJobSlots();
             return s;
@@ -366,6 +385,7 @@ namespace Heartline.Save
         public void ResetAll()
         {
             if (File.Exists(PathFile)) File.Delete(PathFile);
+            if (File.Exists(LegacyPathV4)) File.Delete(LegacyPathV4);
             if (File.Exists(LegacyPathV3)) File.Delete(LegacyPathV3);
             if (File.Exists(LegacyPath)) File.Delete(LegacyPath);
             Data = NewGame();

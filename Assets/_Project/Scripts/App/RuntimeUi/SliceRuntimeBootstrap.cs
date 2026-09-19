@@ -64,6 +64,9 @@ namespace Heartline.App.RuntimeUi
                 case "07_Jobs": BuildJobs(host); break;
                 case "08_Battle": BuildBattle(host); break;
                 case "09_Missions": BuildMissions(host); break;
+                case "10_Arena": BuildArena(host); break;
+                case "11_Tower": BuildTower(host); break;
+                case "12_Codex": BuildCodex(host); break;
             }
         }
 
@@ -90,16 +93,27 @@ namespace Heartline.App.RuntimeUi
         {
             var canvas = RuntimeUiKit.CreateCanvas("TitleCanvas", host);
             var title = host.gameObject.AddComponent<TitleController>();
-            RuntimeUiKit.Label(canvas.transform, "Title", "HEARTLINE PROTOCOL", 52, TextAnchor.MiddleCenter,
-                new Vector2(0.05f, 0.7f), new Vector2(0.95f, 0.88f), Vector2.zero, Vector2.zero,
+            RuntimeUiKit.Label(canvas.transform, "Title", "HEARTLINE PROTOCOL", 48, TextAnchor.MiddleCenter,
+                new Vector2(0.05f, 0.82f), new Vector2(0.95f, 0.94f), Vector2.zero, Vector2.zero,
                 new Color(0.91f, 0.78f, 0.48f));
-            RuntimeUiKit.Label(canvas.transform, "Sub", "Vertical Slice · Sync Match + Mira Room", 26, TextAnchor.MiddleCenter,
-                new Vector2(0.1f, 0.6f), new Vector2(0.9f, 0.7f), Vector2.zero, Vector2.zero);
+            RuntimeUiKit.Label(canvas.transform, "Sub", "Vertical Slice · Sync Match + Mira Room", 22, TextAnchor.MiddleCenter,
+                new Vector2(0.1f, 0.76f), new Vector2(0.9f, 0.82f), Vector2.zero, Vector2.zero);
+            var flags = RuntimeUiKit.Label(canvas.transform, "Flags", "Content flags…", 22, TextAnchor.UpperLeft,
+                new Vector2(0.08f, 0.52f), new Vector2(0.92f, 0.75f), Vector2.zero, Vector2.zero,
+                new Color(0.7f, 0.85f, 1f));
+            title.BindLegacy(flags);
+            title.RefreshFlags();
+            RuntimeUiKit.Button(canvas.transform, "Sfw", "SFW Mode: ON (locked)",
+                new Vector2(0.08f, 0.44f), new Vector2(0.48f, 0.51f), Vector2.zero, Vector2.zero,
+                title.OnToggleSfw, new Color(0.18f, 0.45f, 0.35f));
+            RuntimeUiKit.Button(canvas.transform, "Adult", "Adult Content…",
+                new Vector2(0.52f, 0.44f), new Vector2(0.92f, 0.51f), Vector2.zero, Vector2.zero,
+                title.OnRequestAdult, new Color(0.45f, 0.2f, 0.25f));
             RuntimeUiKit.Button(canvas.transform, "New", "New Game (grant Mira)",
-                new Vector2(0.15f, 0.38f), new Vector2(0.85f, 0.48f), Vector2.zero, Vector2.zero,
+                new Vector2(0.15f, 0.32f), new Vector2(0.85f, 0.41f), Vector2.zero, Vector2.zero,
                 title.NewGame, new Color(0.89f, 0.23f, 0.29f));
             RuntimeUiKit.Button(canvas.transform, "Continue", "Continue",
-                new Vector2(0.15f, 0.24f), new Vector2(0.85f, 0.34f), Vector2.zero, Vector2.zero,
+                new Vector2(0.15f, 0.22f), new Vector2(0.85f, 0.30f), Vector2.zero, Vector2.zero,
                 title.Continue);
             RuntimeUiKit.Button(canvas.transform, "Reset", "Debug: Reset Save (dev)",
                 new Vector2(0.2f, 0.08f), new Vector2(0.8f, 0.16f), Vector2.zero, Vector2.zero,
@@ -124,12 +138,12 @@ namespace Heartline.App.RuntimeUi
             hub.BindLegacy(sta, he, coins, crystals, status);
             hub.RefreshHud();
 
-            float y = 0.64f;
+            float y = 0.72f;
             void Nav(string label, UnityEngine.Events.UnityAction action)
             {
                 RuntimeUiKit.Button(canvas.transform, label, label,
-                    new Vector2(0.12f, y - 0.055f), new Vector2(0.88f, y), Vector2.zero, Vector2.zero, action);
-                y -= 0.068f;
+                    new Vector2(0.12f, y - 0.045f), new Vector2(0.88f, y), Vector2.zero, Vector2.zero, action);
+                y -= 0.052f;
             }
             Nav("Stages", hub.OpenStages);
             Nav("Mira's Room", hub.OpenRoom);
@@ -137,6 +151,9 @@ namespace Heartline.App.RuntimeUi
             Nav("Beginner Banner", hub.OpenGacha);
             Nav("Jobs (Café/Pier/Clinic)", hub.OpenJobs);
             Nav("Daily Missions", hub.OpenMissions);
+            Nav("Arena (3 attacks/day)", hub.OpenArena);
+            Nav("Tower / Abyss (10 floors)", hub.OpenTower);
+            Nav("Agent Codex", hub.OpenCodex);
             Nav("Mail", hub.OpenMail);
             Nav("Settings", hub.OpenSettings);
             RuntimeUiKit.Button(canvas.transform, "DebugSTA", "Debug: refill STA/HE",
@@ -277,6 +294,72 @@ namespace Heartline.App.RuntimeUi
                 new Vector2(0.52f, 0.18f), new Vector2(0.95f, 0.26f), Vector2.zero, Vector2.zero, jobs.DebugCompleteNow);
             RuntimeUiKit.Button(canvas.transform, "Back", "Back",
                 new Vector2(0.2f, 0.03f), new Vector2(0.8f, 0.1f), Vector2.zero, Vector2.zero, jobs.Back);
+        }
+
+
+        static void BuildMissions(Transform host)
+        {
+            var canvas = RuntimeUiKit.CreateCanvas("MissionsCanvas", host);
+            var ctrl = host.gameObject.AddComponent<DailyMissionsController>();
+            var status = RuntimeUiKit.Label(canvas.transform, "Status", "Missions", 22, TextAnchor.UpperLeft,
+                new Vector2(0.05f, 0.42f), new Vector2(0.95f, 0.96f), Vector2.zero, Vector2.zero);
+            ctrl.BindLegacy(status);
+            RuntimeUiKit.Button(canvas.transform, "C1", "Claim: Clear stage",
+                new Vector2(0.05f, 0.32f), new Vector2(0.95f, 0.40f), Vector2.zero, Vector2.zero, ctrl.ClaimClearStage);
+            RuntimeUiKit.Button(canvas.transform, "C2", "Claim: Room talk",
+                new Vector2(0.05f, 0.23f), new Vector2(0.95f, 0.31f), Vector2.zero, Vector2.zero, ctrl.ClaimRoomTalk);
+            RuntimeUiKit.Button(canvas.transform, "C3", "Claim: Job",
+                new Vector2(0.05f, 0.14f), new Vector2(0.95f, 0.22f), Vector2.zero, Vector2.zero, ctrl.ClaimJob);
+            RuntimeUiKit.Button(canvas.transform, "All", "Claim All Ready",
+                new Vector2(0.05f, 0.06f), new Vector2(0.48f, 0.13f), Vector2.zero, Vector2.zero, ctrl.ClaimAllReady);
+            RuntimeUiKit.Button(canvas.transform, "Back", "Back",
+                new Vector2(0.52f, 0.06f), new Vector2(0.95f, 0.13f), Vector2.zero, Vector2.zero, ctrl.Back);
+        }
+
+        static void BuildArena(Transform host)
+        {
+            var canvas = RuntimeUiKit.CreateCanvas("ArenaCanvas", host);
+            var ctrl = host.gameObject.AddComponent<ArenaController>();
+            var status = RuntimeUiKit.Label(canvas.transform, "Status", "Arena", 22, TextAnchor.UpperLeft,
+                new Vector2(0.05f, 0.28f), new Vector2(0.95f, 0.96f), Vector2.zero, Vector2.zero);
+            ctrl.BindLegacy(status);
+            RuntimeUiKit.Button(canvas.transform, "Attack", "Attack next defense team",
+                new Vector2(0.1f, 0.14f), new Vector2(0.9f, 0.24f), Vector2.zero, Vector2.zero,
+                ctrl.AttackNext, new Color(0.89f, 0.23f, 0.29f));
+            RuntimeUiKit.Button(canvas.transform, "Back", "Back",
+                new Vector2(0.2f, 0.03f), new Vector2(0.8f, 0.11f), Vector2.zero, Vector2.zero, ctrl.Back);
+        }
+
+        static void BuildTower(Transform host)
+        {
+            var canvas = RuntimeUiKit.CreateCanvas("TowerCanvas", host);
+            var ctrl = host.gameObject.AddComponent<TowerController>();
+            var status = RuntimeUiKit.Label(canvas.transform, "Status", "Tower", 20, TextAnchor.UpperLeft,
+                new Vector2(0.04f, 0.28f), new Vector2(0.96f, 0.96f), Vector2.zero, Vector2.zero);
+            ctrl.BindLegacy(status);
+            RuntimeUiKit.Button(canvas.transform, "Clear", "Stub: Clear next floor",
+                new Vector2(0.05f, 0.14f), new Vector2(0.48f, 0.24f), Vector2.zero, Vector2.zero,
+                ctrl.ClearNext, new Color(0.18f, 0.55f, 0.35f));
+            RuntimeUiKit.Button(canvas.transform, "Fail", "Stub: Fail next floor",
+                new Vector2(0.52f, 0.14f), new Vector2(0.95f, 0.24f), Vector2.zero, Vector2.zero,
+                ctrl.FailNext, new Color(0.45f, 0.2f, 0.25f));
+            RuntimeUiKit.Button(canvas.transform, "Back", "Back",
+                new Vector2(0.2f, 0.03f), new Vector2(0.8f, 0.11f), Vector2.zero, Vector2.zero, ctrl.Back);
+        }
+
+        static void BuildCodex(Transform host)
+        {
+            var canvas = RuntimeUiKit.CreateCanvas("CodexCanvas", host);
+            var ctrl = host.gameObject.AddComponent<CodexController>();
+            var status = RuntimeUiKit.Label(canvas.transform, "Status", "Codex", 20, TextAnchor.UpperLeft,
+                new Vector2(0.04f, 0.22f), new Vector2(0.96f, 0.96f), Vector2.zero, Vector2.zero);
+            ctrl.BindLegacy(status);
+            RuntimeUiKit.Button(canvas.transform, "Prev", "◀ Prev",
+                new Vector2(0.05f, 0.10f), new Vector2(0.32f, 0.18f), Vector2.zero, Vector2.zero, ctrl.Prev);
+            RuntimeUiKit.Button(canvas.transform, "Next", "Next ▶",
+                new Vector2(0.35f, 0.10f), new Vector2(0.62f, 0.18f), Vector2.zero, Vector2.zero, ctrl.Next);
+            RuntimeUiKit.Button(canvas.transform, "Back", "Back",
+                new Vector2(0.65f, 0.10f), new Vector2(0.95f, 0.18f), Vector2.zero, Vector2.zero, ctrl.Back);
         }
 
         static void BuildBattle(Transform host)

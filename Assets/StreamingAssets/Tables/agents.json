@@ -55,7 +55,8 @@
       "paletteHex": {
         "primary": "#EC4899",
         "accent": "#2DBE6A"
-      }
+      },
+      "roleBlurb": "Synergist anchor \u2014 shares Sync Gauge and holds the Tower family together."
     },
     {
       "id": "ivy",
@@ -107,7 +108,8 @@
       "paletteHex": {
         "primary": "#E23B4A",
         "accent": "#E8C87A"
-      }
+      },
+      "roleBlurb": "Eager Front Striker \u2014 growth hero for early Breaches and Pier jobs."
     },
     {
       "id": "juniper",
@@ -160,7 +162,8 @@
         "primary": "#3B82F6",
         "accent": "#C5CDD8"
       },
-      "contentNotes": "Adult proportions only. Age 21. Never child-coded."
+      "contentNotes": "Adult proportions only. Age 21. Never child-coded.",
+      "roleBlurb": "Door-guard Guardian (21) \u2014 comic steel; never child-coded."
     },
     {
       "id": "wren",
@@ -212,7 +215,423 @@
       "paletteHex": {
         "primary": "#22C55E",
         "accent": "#6EE7B7"
-      }
+      },
+      "roleBlurb": "Night-shift Support \u2014 heals, crafts T1 gifts, Tidewell moonlighter."
+    },
+    {
+      "id": "kade",
+      "displayName": "Kade Virell",
+      "codename": "Spotlight Edge",
+      "age": 27,
+      "rarity": "SSR",
+      "role": "Striker",
+      "faction": "Crimson Circuit",
+      "preferredLanes": [
+        "Front"
+      ],
+      "gemAttunements": [
+        "Crimson",
+        "Amber"
+      ],
+      "heightCm": 175,
+      "voiceNote": "Confident contralto, arena mic energy",
+      "baseStars": 4,
+      "maxLevelSoft": 70,
+      "unlock": "locked_teaser",
+      "roleBlurb": "Arena celebrity Striker \u2014 loyalty harder to win than trophies.",
+      "statsLv1": {
+        "hp": 860,
+        "atk": 240,
+        "def": 80,
+        "syncRate": 10,
+        "critRate": 0.08
+      },
+      "statsLv60": {
+        "hp": 7800,
+        "atk": 2100,
+        "def": 640,
+        "syncRate": 42,
+        "critRate": 0.18
+      },
+      "skills": {
+        "passiveId": "kade_arena_favor",
+        "basicId": "kade_spotlight",
+        "burstId": "kade_curtain_call",
+        "bondId": "kade_luce_crush"
+      },
+      "preferredGifts": [],
+      "bondPartnerIds": [
+        "luce"
+      ],
+      "paletteHex": {
+        "primary": "#E23B4A",
+        "accent": "#F0A12A"
+      },
+      "contentNotes": "Adult 27. Locked teaser for launch roster."
+    },
+    {
+      "id": "nyra",
+      "displayName": "Dr. Nyra Quell",
+      "codename": "Cortisol Quiet",
+      "age": 31,
+      "rarity": "SSR",
+      "role": "Support",
+      "faction": "Tidewell Clinic",
+      "preferredLanes": [
+        "Mid",
+        "Back"
+      ],
+      "gemAttunements": [
+        "Verdant",
+        "Azure"
+      ],
+      "heightCm": 172,
+      "voiceNote": "Calm alto, clinical warmth",
+      "baseStars": 4,
+      "maxLevelSoft": 70,
+      "unlock": "locked_teaser",
+      "roleBlurb": "Trauma specialist Support \u2014 Syncs by lowering squad stress.",
+      "statsLv1": {
+        "hp": 1000,
+        "atk": 160,
+        "def": 100,
+        "syncRate": 14,
+        "critRate": 0.04
+      },
+      "statsLv60": {
+        "hp": 9000,
+        "atk": 1400,
+        "def": 820,
+        "syncRate": 52,
+        "critRate": 0.08
+      },
+      "healPower": 0.35,
+      "skills": {
+        "passiveId": "nyra_quiet_ward",
+        "basicId": "nyra_triage",
+        "burstId": "nyra_full_rounds",
+        "bondId": "nyra_wren_lattice"
+      },
+      "preferredGifts": [],
+      "bondPartnerIds": [
+        "wren"
+      ],
+      "paletteHex": {
+        "primary": "#2DBE6A",
+        "accent": "#E8C87A"
+      },
+      "contentNotes": "Adult 31. Locked teaser."
+    },
+    {
+      "id": "sable",
+      "displayName": "Sable Rin",
+      "codename": "Board Whisper",
+      "age": 22,
+      "rarity": "SR",
+      "role": "Controller",
+      "faction": "Null Chorus",
+      "preferredLanes": [
+        "Mid"
+      ],
+      "gemAttunements": [
+        "Violet",
+        "Prism"
+      ],
+      "heightCm": 166,
+      "voiceNote": "Soft mezzo, conspiratorial",
+      "baseStars": 3,
+      "maxLevelSoft": 60,
+      "unlock": "locked_teaser",
+      "roleBlurb": "Infiltrator Controller \u2014 converts enemy gems by whispering the board.",
+      "statsLv1": {
+        "hp": 820,
+        "atk": 180,
+        "def": 85,
+        "syncRate": 13,
+        "critRate": 0.05
+      },
+      "statsLv60": {
+        "hp": 7000,
+        "atk": 1550,
+        "def": 700,
+        "syncRate": 48,
+        "critRate": 0.1
+      },
+      "skills": {
+        "passiveId": "sable_whisper",
+        "basicId": "sable_static",
+        "burstId": "sable_null_chorus",
+        "bondId": "sable_hex"
+      },
+      "preferredGifts": [],
+      "bondPartnerIds": [
+        "hex"
+      ],
+      "paletteHex": {
+        "primary": "#8B5CF6",
+        "accent": "#F5F7FF"
+      },
+      "contentNotes": "Adult 22. Locked teaser."
+    },
+    {
+      "id": "ora",
+      "displayName": "Captain Ora Finch",
+      "codename": "Tower Aegis",
+      "age": 29,
+      "rarity": "SSR",
+      "role": "Guardian",
+      "faction": "Aurelia Corp",
+      "preferredLanes": [
+        "Front"
+      ],
+      "gemAttunements": [
+        "Azure"
+      ],
+      "heightCm": 178,
+      "voiceNote": "Dry baritone-adjacent alto",
+      "baseStars": 4,
+      "maxLevelSoft": 70,
+      "unlock": "locked_teaser",
+      "roleBlurb": "By-the-book tower security Guardian \u2014 paperwork vs found-family.",
+      "statsLv1": {
+        "hp": 1100,
+        "atk": 150,
+        "def": 130,
+        "syncRate": 9,
+        "critRate": 0.03
+      },
+      "statsLv60": {
+        "hp": 9800,
+        "atk": 1250,
+        "def": 980,
+        "syncRate": 36,
+        "critRate": 0.07
+      },
+      "shieldPower": 0.28,
+      "skills": {
+        "passiveId": "ora_aegis",
+        "basicId": "ora_riot_jab",
+        "burstId": "ora_hold_lobby",
+        "bondId": null
+      },
+      "preferredGifts": [],
+      "bondPartnerIds": [
+        "mira"
+      ],
+      "paletteHex": {
+        "primary": "#2F7BFF",
+        "accent": "#C5CDD8"
+      },
+      "contentNotes": "Adult 29. Locked teaser."
+    },
+    {
+      "id": "luce",
+      "displayName": "Luce Amaranth",
+      "codename": "Lane Crush",
+      "age": 25,
+      "rarity": "SR",
+      "role": "Breaker",
+      "faction": "Crimson Circuit",
+      "preferredLanes": [
+        "Mid",
+        "Front"
+      ],
+      "gemAttunements": [
+        "Amber",
+        "Crimson"
+      ],
+      "heightCm": 169,
+      "voiceNote": "Bright kinetic mezzo",
+      "baseStars": 3,
+      "maxLevelSoft": 60,
+      "unlock": "locked_teaser",
+      "roleBlurb": "Explosive midlaner Breaker \u2014 vinyl, grudges, Kade Bond crush.",
+      "statsLv1": {
+        "hp": 800,
+        "atk": 200,
+        "def": 75,
+        "syncRate": 11,
+        "critRate": 0.07
+      },
+      "statsLv60": {
+        "hp": 6800,
+        "atk": 1750,
+        "def": 580,
+        "syncRate": 44,
+        "critRate": 0.15
+      },
+      "skills": {
+        "passiveId": "luce_shatter",
+        "basicId": "luce_break_beat",
+        "burstId": "luce_vinyl_nuke",
+        "bondId": "kade_luce_crush"
+      },
+      "preferredGifts": [],
+      "bondPartnerIds": [
+        "kade"
+      ],
+      "paletteHex": {
+        "primary": "#F0A12A",
+        "accent": "#E23B4A"
+      },
+      "contentNotes": "Adult 25. Locked teaser."
+    },
+    {
+      "id": "helene",
+      "displayName": "Professor Helene Voss",
+      "codename": "Grid Origin",
+      "age": 34,
+      "rarity": "SSR",
+      "role": "Controller",
+      "faction": "Aurelia (ex)",
+      "preferredLanes": [
+        "Mid",
+        "Back"
+      ],
+      "gemAttunements": [
+        "Violet",
+        "Prism"
+      ],
+      "heightCm": 174,
+      "voiceNote": "Measured academic contralto",
+      "baseStars": 4,
+      "maxLevelSoft": 70,
+      "unlock": "locked_teaser",
+      "roleBlurb": "Heartline theory architect \u2014 cryptic mentor Controller.",
+      "statsLv1": {
+        "hp": 900,
+        "atk": 190,
+        "def": 90,
+        "syncRate": 15,
+        "critRate": 0.05
+      },
+      "statsLv60": {
+        "hp": 8200,
+        "atk": 1680,
+        "def": 740,
+        "syncRate": 55,
+        "critRate": 0.1
+      },
+      "skills": {
+        "passiveId": "helene_theory",
+        "basicId": "helene_lemma",
+        "burstId": "helene_origin_proof",
+        "bondId": "helene_mira"
+      },
+      "preferredGifts": [],
+      "bondPartnerIds": [
+        "mira"
+      ],
+      "paletteHex": {
+        "primary": "#8B5CF6",
+        "accent": "#12182B"
+      },
+      "contentNotes": "Adult 34. Locked teaser."
+    },
+    {
+      "id": "hex",
+      "displayName": "Zara \"Hex\" Montal",
+      "codename": "Signal Witch",
+      "age": 28,
+      "rarity": "SR",
+      "role": "Synergist",
+      "faction": "Null Chorus",
+      "preferredLanes": [
+        "Mid",
+        "Back"
+      ],
+      "gemAttunements": [
+        "Prism",
+        "Violet"
+      ],
+      "heightCm": 171,
+      "voiceNote": "Playful DJ alto",
+      "baseStars": 3,
+      "maxLevelSoft": 60,
+      "unlock": "locked_teaser",
+      "roleBlurb": "DJ / signal Synergist \u2014 hub dance emotes and Bond Festival queen.",
+      "statsLv1": {
+        "hp": 880,
+        "atk": 185,
+        "def": 88,
+        "syncRate": 14,
+        "critRate": 0.06
+      },
+      "statsLv60": {
+        "hp": 7600,
+        "atk": 1600,
+        "def": 720,
+        "syncRate": 50,
+        "critRate": 0.11
+      },
+      "gaugeSharePower": 0.16,
+      "skills": {
+        "passiveId": "hex_signal",
+        "basicId": "hex_drop",
+        "burstId": "hex_festival_mix",
+        "bondId": "sable_hex"
+      },
+      "preferredGifts": [],
+      "bondPartnerIds": [
+        "sable"
+      ],
+      "paletteHex": {
+        "primary": "#FF2D8A",
+        "accent": "#00D4FF"
+      },
+      "contentNotes": "Adult 28. Locked teaser."
+    },
+    {
+      "id": "aveline",
+      "displayName": "Aveline Roux",
+      "codename": "Mythic Freelancer",
+      "age": 30,
+      "rarity": "UR",
+      "role": "Breaker",
+      "faction": "Independent",
+      "preferredLanes": [
+        "Front",
+        "Mid"
+      ],
+      "gemAttunements": [
+        "Amber",
+        "Prism"
+      ],
+      "heightCm": 176,
+      "voiceNote": "Calm chef-energy alto",
+      "baseStars": 5,
+      "maxLevelSoft": 80,
+      "unlock": "locked_limited",
+      "roleBlurb": "Limited debut UR Breaker \u2014 calm chef in Room, devastation on the Field.",
+      "statsLv1": {
+        "hp": 920,
+        "atk": 260,
+        "def": 90,
+        "syncRate": 12,
+        "critRate": 0.09
+      },
+      "statsLv60": {
+        "hp": 8600,
+        "atk": 2300,
+        "def": 700,
+        "syncRate": 46,
+        "critRate": 0.2
+      },
+      "skills": {
+        "passiveId": "aveline_armor_ignore",
+        "basicId": "aveline_mise",
+        "burstId": "aveline_devastation",
+        "bondId": "mira_aveline"
+      },
+      "preferredGifts": [],
+      "bondPartnerIds": [
+        "mira"
+      ],
+      "paletteHex": {
+        "primary": "#E8C87A",
+        "accent": "#12182B"
+      },
+      "contentNotes": "Adult 30. Locked limited UR teaser \u2014 not invent underage."
     }
   ]
 }

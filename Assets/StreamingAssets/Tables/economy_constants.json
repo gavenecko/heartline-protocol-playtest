@@ -130,7 +130,7 @@
     "instant_cocoa_t1": 400,
     "herbal_sachet_t1": 400
   },
-  "saveSchema": 4,
+  "saveSchema": 5,
   "growth": {
     "levelCapsByStars": {
       "1": 40,
@@ -176,5 +176,29 @@
       "crystals": 50,
       "tickets": 1
     }
+  },
+  "arena": {
+    "freeAttacksPerDay": 3,
+    "marksWin": 25,
+    "marksLoss": 5,
+    "weeklyNote": "Ranking rewards settle Monday 00:00 UTC"
+  },
+  "tower": {
+    "fullFloors": 50,
+    "sliceFloors": 10,
+    "checkpointEvery": 5,
+    "staminaCosts": {
+      "1": 6,
+      "2": 6,
+      "3": 6,
+      "4": 6,
+      "5": 6,
+      "6": 8,
+      "7": 8,
+      "8": 8,
+      "9": 8,
+      "10": 8
+    },
+    "noContinueOnFail": true
   }
 }

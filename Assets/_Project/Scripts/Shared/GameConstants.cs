@@ -3,8 +3,8 @@ namespace Heartline.Shared
     public static class GameConstants
     {
         public const string ProductName = "Heartline Protocol";
-        public const string SliceVersion = "0.3.0-slice";
-        public const int SaveSchemaVersion = 4;
+        public const string SliceVersion = "0.4.0-slice";
+        public const int SaveSchemaVersion = 5;
 
         public const int MaxAffRankSlice = 3;
         public const int AffRank2Xp = 100;
@@ -25,5 +25,15 @@ namespace Heartline.Shared
         public const int HeartRegenMinutes = 8;
 
         public const int GiftShopSunwellTeaLc = 500;
+
+        // Arena / Tower slice stubs
+        public const int ArenaFreeAttacksPerDay = 3;
+        public const int ArenaMarksWin = 25;
+        public const int ArenaMarksLoss = 5;
+        public const int TowerSliceFloors = 10;
+        public const int TowerFullFloors = 50;
+        public const int TowerCheckpointEvery = 5;
+        public const int TowerStaFloor1to5 = 6;
+        public const int TowerStaFloor6to10 = 8;
     }
 }

@@ -82,7 +82,7 @@ namespace Heartline.Hub
             HudText.Set(staminaText, staminaTextLegacy, $"STA {d.stamina}/{GameConstants.StaminaCap}{staExtra}");
             HudText.Set(heartText, heartTextLegacy, $"HE {d.heartEnergy}/{GameConstants.HeartEnergyCap}{heExtra}");
             HudText.Set(coinsText, coinsTextLegacy, $"LC {d.lumaCoins}");
-            HudText.Set(crystalsText, crystalsTextLegacy, $"PC {d.pulseCrystals} · Tix {d.beginnerTickets}");
+            HudText.Set(crystalsText, crystalsTextLegacy, $"PC {d.pulseCrystals} · Tix {d.beginnerTickets} · AM {d.arenaMarks}");
             string st = d.ch1Complete ? "Ch.1 Clear" : $"Progress {d.ch1Stage} · cleared {d.clearedStages.Count}";
             HudText.Set(statusText, statusTextLegacy, st);
         }
@@ -93,6 +93,9 @@ namespace Heartline.Hub
         public void OpenGacha() => SceneManager.LoadScene("06_Gacha");
         public void OpenJobs() => SceneManager.LoadScene("07_Jobs");
         public void OpenMissions() => SceneManager.LoadScene("09_Missions");
+        public void OpenArena() => SceneManager.LoadScene("10_Arena");
+        public void OpenTower() => SceneManager.LoadScene("11_Tower");
+        public void OpenCodex() => SceneManager.LoadScene("12_Codex");
 
         public void OpenMail()
         {
@@ -118,7 +121,7 @@ namespace Heartline.Hub
         public void OpenSettings()
         {
             HudText.Set(statusText, statusTextLegacy,
-                "SFW Mode ON · Adult packs unavailable · Aff caps at 3 · Ages 18+ (Juniper 21)");
+                "SFW Mode ON (locked) · Adult BLOCKED · Aff≤3 · Arena/Tower/Codex stubs · Ages 18+ (Juniper 21)");
         }
 
         public void DebugAddStamina()

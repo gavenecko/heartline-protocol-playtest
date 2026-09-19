@@ -5,5 +5,7 @@
   "regionAllowsAdult": false,
   "buildIncludesAdultGroup": false,
   "maxAffRank": 3,
-  "intimateActionVisible": false
+  "intimateActionVisible": false,
+  "ageGateRequired": true,
+  "sliceBlocksAdultPath": true
 }
