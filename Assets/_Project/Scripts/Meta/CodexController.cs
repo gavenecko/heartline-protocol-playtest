@@ -40,13 +40,26 @@ namespace Heartline.Meta
             return list;
         }
 
+        List<AgentDefinition> VisibleAgents()
+        {
+            var unlocked = SaveService.Instance.Data.unlockedAgents ?? new List<string>();
+            var list = new List<AgentDefinition>();
+            foreach (var a in Agents())
+            {
+                if (a == null) continue;
+                if (a.codexHiddenUntilUnlock && !unlocked.Contains(a.id)) continue;
+                list.Add(a);
+            }
+            return list;
+        }
+
         public void Refresh()
         {
-            var agents = Agents();
+            var agents = VisibleAgents();
             var unlocked = SaveService.Instance.Data.unlockedAgents
                            ?? new List<string>();
             var sb = new StringBuilder();
-            sb.AppendLine($"Agent Codex · {agents.Count} profiles (launch 12)");
+            sb.AppendLine($"Agent Codex · {VisibleAgents().Count} shown · secrets stay hidden until unlocked");
             sb.AppendLine("Playable slice: Mira / Ivy / Juniper / Wren · rest = locked teasers");
             sb.AppendLine();
             if (agents.Count == 0)
@@ -70,7 +83,9 @@ namespace Heartline.Meta
             sb.AppendLine();
             sb.AppendLine($"Unlock: {a.unlock ?? "—"}");
             if (!own)
-                sb.AppendLine("(Teaser — recruit via story / gacha in live build)");
+                sb.AppendLine(a.secret
+                    ? "(SECRET — clear Tower floor 10 to recruit)"
+                    : "(Teaser — recruit via story / gacha in live build)");
             sb.AppendLine();
             sb.AppendLine("Roster:");
             foreach (var x in agents)
@@ -85,7 +100,7 @@ namespace Heartline.Meta
 
         public void Next()
         {
-            var n = Agents().Count;
+            var n = VisibleAgents().Count;
             if (n == 0) return;
             _index = (_index + 1) % n;
             Refresh();
@@ -93,7 +108,7 @@ namespace Heartline.Meta
 
         public void Prev()
         {
-            var n = Agents().Count;
+            var n = VisibleAgents().Count;
             if (n == 0) return;
             _index = (_index - 1 + n) % n;
             Refresh();

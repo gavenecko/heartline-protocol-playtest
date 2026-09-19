@@ -280,6 +280,17 @@ namespace Heartline.Save
             LoadOrCreate();
         }
 
+        public bool UnlockAgent(string id)
+        {
+            if (string.IsNullOrEmpty(id) || Data == null) return false;
+            if (Data.unlockedAgents == null) Data.unlockedAgents = new System.Collections.Generic.List<string>();
+            if (Data.unlockedAgents.Contains(id)) return false;
+            Data.unlockedAgents.Add(id);
+            Data.GetOrCreateAgent(id, 1, id == "velvet" ? 5 : 1);
+            Save();
+            return true;
+        }
+
         public void LoadOrCreate()
         {
             string path = File.Exists(PathFile) ? PathFile
@@ -329,6 +340,7 @@ namespace Heartline.Save
         static int DefaultStarsFor(string id) => id switch
         {
             "mira" => 4,
+            "velvet" => 5,
             "wren" => 3,
             "ivy" => 2,
             "juniper" => 2,

@@ -632,6 +632,63 @@
         "accent": "#12182B"
       },
       "contentNotes": "Adult 30. Locked limited UR teaser \u2014 not invent underage."
+    },
+    {
+      "id": "velvet",
+      "displayName": "Velvet Noir",
+      "codename": "Midnight Protocol",
+      "age": 26,
+      "rarity": "UR",
+      "role": "Synergist",
+      "faction": "Independent (Secret)",
+      "preferredLanes": [
+        "Mid",
+        "Back"
+      ],
+      "gemAttunements": [
+        "Violet",
+        "Prism"
+      ],
+      "heightCm": 170,
+      "voiceNote": "Sultry contralto, velvet-smooth",
+      "baseStars": 5,
+      "maxLevelSoft": 80,
+      "unlock": "secret_tower_10",
+      "roleBlurb": "Secret UR Synergist \u2014 rumor in the Grid. Extremely charismatic; unlock by clearing Tower floor 10.",
+      "statsLv1": {
+        "hp": 960,
+        "atk": 250,
+        "def": 95,
+        "syncRate": 16,
+        "critRate": 0.1
+      },
+      "statsLv60": {
+        "hp": 9000,
+        "atk": 2200,
+        "def": 780,
+        "syncRate": 58,
+        "critRate": 0.18
+      },
+      "gaugeSharePower": 0.22,
+      "skills": {
+        "passiveId": "velvet_midnight_charm",
+        "basicId": "velvet_soft_lure",
+        "burstId": "velvet_noir_protocol",
+        "bondId": "velvet_mira"
+      },
+      "preferredGifts": [
+        "velvet_rose_t3"
+      ],
+      "bondPartnerIds": [
+        "mira"
+      ],
+      "paletteHex": {
+        "primary": "#8B5CF6",
+        "accent": "#12182B"
+      },
+      "contentNotes": "Adult 26. Secret unlock. SFW glamorous design; voluptuous adult proportions.",
+      "secret": true,
+      "codexHiddenUntilUnlock": true
     }
   ]
 }

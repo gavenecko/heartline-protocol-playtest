@@ -38,6 +38,8 @@ namespace Heartline.Shared
         public PaletteHex paletteHex;
         public string roleBlurb;
         public string contentNotes;
+        public bool secret;
+        public bool codexHiddenUntilUnlock;
 
         public bool IsAdult => age >= 18;
 
