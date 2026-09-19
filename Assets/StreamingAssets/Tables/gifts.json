@@ -1,0 +1,41 @@
+{
+  "gifts": [
+    {
+      "id": "sunwell_tea_t1",
+      "displayName": "Sunwell Tea",
+      "tier": 1,
+      "affXp": 40,
+      "preferredAgents": ["mira"],
+      "preferredMultiplier": 1.5
+    },
+    {
+      "id": "protein_bar_t1",
+      "displayName": "Protein Bar",
+      "tier": 1,
+      "affXp": 40,
+      "preferredAgents": ["ivy"]
+    },
+    {
+      "id": "instant_cocoa_t1",
+      "displayName": "Instant Cocoa",
+      "tier": 1,
+      "affXp": 40,
+      "preferredAgents": ["juniper"]
+    },
+    {
+      "id": "herbal_sachet_t1",
+      "displayName": "Herbal Sachet",
+      "tier": 1,
+      "affXp": 40,
+      "preferredAgents": ["wren"]
+    },
+    {
+      "id": "corp_swag_pen",
+      "displayName": "Corp Swag Pen",
+      "tier": 1,
+      "affXp": 20,
+      "dislikedAgents": ["mira"],
+      "dislikeMultiplier": 0.5
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Heartline.Room",
+  "rootNamespace": "Heartline.Room",
+  "references": ["Heartline.Shared"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

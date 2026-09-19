@@ -1,0 +1,14 @@
+{
+  "name": "Heartline.App",
+  "rootNamespace": "Heartline.App",
+  "references": ["Heartline.Shared","Heartline.SyncMatch","Heartline.Hub","Heartline.Room","Heartline.Meta","Heartline.Save","Heartline.ContentFlags","Heartline.Analytics","Heartline.Gacha"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

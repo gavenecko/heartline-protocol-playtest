@@ -1,0 +1,132 @@
+{
+  "skills": [
+    {
+      "id": "mira_soft_pulse",
+      "name": "Soft Pulse",
+      "type": "Basic",
+      "agentId": "mira",
+      "healAtkPct": 0.45,
+      "gaugeGrant": 0.08,
+      "targeting": "LowestHpAlly"
+    },
+    {
+      "id": "mira_protocol_overlap",
+      "name": "Protocol Overlap",
+      "type": "Burst",
+      "agentId": "mira",
+      "damageAtkPct": 1.8,
+      "allyGaugeGrant": 0.22,
+      "laneSkillDamageBuff": 0.18,
+      "buffTurns": 2,
+      "targeting": "MidBack"
+    },
+    {
+      "id": "mira_heartline_relay",
+      "name": "Heartline Relay",
+      "type": "Passive",
+      "agentId": "mira",
+      "laneFillBonus": 0.10,
+      "teamGaugeOnAttune": 0.04,
+      "maxTeamGaugeProcsPerTurn": 3
+    },
+    {
+      "id": "mira_shared_lease_ivy",
+      "name": "Shared Lease",
+      "type": "Bond",
+      "agentIds": ["mira", "ivy"],
+      "oncePerBattle": true,
+      "gaugeRefill": 0.35,
+      "cleanseCount": 1
+    },
+    {
+      "id": "ivy_ready_strike",
+      "name": "Ready Strike",
+      "type": "Basic",
+      "agentId": "ivy",
+      "damageAtkPct": 0.90,
+      "targeting": "FrontMid"
+    },
+    {
+      "id": "ivy_prove_it",
+      "name": "Prove It",
+      "type": "Burst",
+      "agentId": "ivy",
+      "damageAtkPct": 2.20,
+      "mentorBonus": 0.25,
+      "targeting": "Front"
+    },
+    {
+      "id": "ivy_washout_grit",
+      "name": "Washout's Grit",
+      "type": "Passive",
+      "agentId": "ivy",
+      "lowHpCritBonus": 0.10,
+      "lowHpThreshold": 0.50
+    },
+    {
+      "id": "juniper_keycard_jab",
+      "name": "Keycard Jab",
+      "type": "Basic",
+      "agentId": "juniper",
+      "damageAtkPct": 0.60,
+      "selfShieldAtkPct": 0.50,
+      "targeting": "Front"
+    },
+    {
+      "id": "juniper_hold_the_door",
+      "name": "Hold the Door",
+      "type": "Burst",
+      "agentId": "juniper",
+      "partyShieldAtkPct": 1.0,
+      "tauntTurns": 2,
+      "targeting": "Party"
+    },
+    {
+      "id": "juniper_lobby_protocol",
+      "name": "Lobby Protocol",
+      "type": "Passive",
+      "agentId": "juniper",
+      "tauntWeightBonus": 0.15,
+      "emergencyShieldHpPct": 0.10,
+      "emergencyHpThreshold": 0.40
+    },
+    {
+      "id": "juniper_tower_family",
+      "name": "Tower Family Shield",
+      "type": "Bond",
+      "agentIds": ["juniper", "mira"],
+      "oncePerBattle": true,
+      "frontDamageTakenReduction": 0.20,
+      "reductionTurns": 2,
+      "partnerGauge": 0.10
+    },
+    {
+      "id": "wren_sip_suture",
+      "name": "Sip & Suture",
+      "type": "Basic",
+      "agentId": "wren",
+      "healAtkPct": 0.55,
+      "regenHpPct": 0.04,
+      "regenTurns": 1,
+      "targeting": "LowestHpAlly"
+    },
+    {
+      "id": "wren_ward_round",
+      "name": "Ward Round",
+      "type": "Burst",
+      "agentId": "wren",
+      "healAtkPct": 1.30,
+      "cleanseCount": 1,
+      "backBuffDurationBonus": 1,
+      "targeting": "AllAllies"
+    },
+    {
+      "id": "wren_caretaker_reserve",
+      "name": "Caretaker's Reserve",
+      "type": "Passive",
+      "agentId": "wren",
+      "verdantMatchHealMaxHpPct": 0.03,
+      "maxProcsPerTurn": 2
+    }
+  ]
+}

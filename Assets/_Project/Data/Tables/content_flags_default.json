@@ -1,0 +1,9 @@
+{
+  "sfwMode": true,
+  "adultUnlocked": false,
+  "adultConsent": false,
+  "regionAllowsAdult": false,
+  "buildIncludesAdultGroup": false,
+  "maxAffRank": 3,
+  "intimateActionVisible": false
+}

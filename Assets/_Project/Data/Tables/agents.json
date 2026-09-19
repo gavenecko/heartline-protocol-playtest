@@ -1,0 +1,218 @@
+{
+  "agents": [
+    {
+      "id": "mira",
+      "displayName": "Mira Solenne",
+      "codename": "Pulse Anchor",
+      "age": 24,
+      "rarity": "SSR",
+      "role": "Synergist",
+      "faction": "Independent",
+      "preferredLanes": [
+        "Mid",
+        "Back"
+      ],
+      "gemAttunements": [
+        "Verdant",
+        "Prism"
+      ],
+      "heightCm": 168,
+      "voiceNote": "Warm mezzo, soft command",
+      "baseStars": 4,
+      "maxLevelSoft": 60,
+      "unlock": "prologue",
+      "statsLv1": {
+        "hp": 980,
+        "atk": 210,
+        "def": 95,
+        "syncRate": 12,
+        "critRate": 0.05
+      },
+      "statsLv60": {
+        "hp": 8420,
+        "atk": 1820,
+        "def": 780,
+        "syncRate": 48,
+        "critRate": 0.12
+      },
+      "gaugeSharePower": 0.18,
+      "skills": {
+        "passiveId": "mira_heartline_relay",
+        "basicId": "mira_soft_pulse",
+        "burstId": "mira_protocol_overlap",
+        "bondId": "mira_shared_lease_ivy"
+      },
+      "preferredGifts": [
+        "sunwell_tea_t1"
+      ],
+      "dislikedGifts": [
+        "corp_swag_pen"
+      ],
+      "bondPartnerIds": [
+        "ivy",
+        "juniper"
+      ],
+      "paletteHex": {
+        "primary": "#EC4899",
+        "accent": "#2DBE6A"
+      }
+    },
+    {
+      "id": "ivy",
+      "displayName": "Ivy Cross",
+      "codename": "Rookie Edge",
+      "age": 23,
+      "rarity": "R",
+      "role": "Striker",
+      "faction": "Independent",
+      "preferredLanes": [
+        "Front",
+        "Mid"
+      ],
+      "gemAttunements": [
+        "Crimson"
+      ],
+      "heightCm": 170,
+      "voiceNote": "Eager bright mezzo",
+      "baseStars": 2,
+      "maxLevelSoft": 40,
+      "unlock": "post_1_1",
+      "statsLv1": {
+        "hp": 780,
+        "atk": 195,
+        "def": 70,
+        "syncRate": 10,
+        "critRate": 0.06
+      },
+      "statsLv60": {
+        "hp": 6200,
+        "atk": 1620,
+        "def": 520,
+        "syncRate": 40,
+        "critRate": 0.16
+      },
+      "skills": {
+        "passiveId": "ivy_washout_grit",
+        "basicId": "ivy_ready_strike",
+        "burstId": "ivy_prove_it",
+        "bondId": "mira_shared_lease_ivy"
+      },
+      "preferredGifts": [
+        "protein_bar_t1"
+      ],
+      "bondPartnerIds": [
+        "mira",
+        "juniper"
+      ],
+      "paletteHex": {
+        "primary": "#E23B4A",
+        "accent": "#E8C87A"
+      }
+    },
+    {
+      "id": "juniper",
+      "displayName": "Juniper Tate",
+      "codename": "Door Guard",
+      "age": 21,
+      "rarity": "R",
+      "role": "Guardian",
+      "faction": "Independent",
+      "preferredLanes": [
+        "Front"
+      ],
+      "gemAttunements": [
+        "Azure"
+      ],
+      "heightCm": 160,
+      "voiceNote": "Earnest bright alto (adult 21+; never child-coded)",
+      "baseStars": 2,
+      "maxLevelSoft": 40,
+      "unlock": "post_1_1",
+      "statsLv1": {
+        "hp": 1000,
+        "atk": 140,
+        "def": 110,
+        "syncRate": 8,
+        "critRate": 0.04
+      },
+      "statsLv60": {
+        "hp": 8000,
+        "atk": 1150,
+        "def": 880,
+        "syncRate": 34,
+        "critRate": 0.08
+      },
+      "shieldPower": 0.22,
+      "skills": {
+        "passiveId": "juniper_lobby_protocol",
+        "basicId": "juniper_keycard_jab",
+        "burstId": "juniper_hold_the_door",
+        "bondId": "juniper_tower_family"
+      },
+      "preferredGifts": [
+        "instant_cocoa_t1"
+      ],
+      "bondPartnerIds": [
+        "mira",
+        "ivy"
+      ],
+      "paletteHex": {
+        "primary": "#3B82F6",
+        "accent": "#C5CDD8"
+      },
+      "contentNotes": "Adult proportions only. Age 21. Never child-coded."
+    },
+    {
+      "id": "wren",
+      "displayName": "Wren Halcyon",
+      "codename": "Night Shift",
+      "age": 26,
+      "rarity": "SR",
+      "role": "Support",
+      "faction": "Tidewell",
+      "preferredLanes": [
+        "Back",
+        "Mid"
+      ],
+      "gemAttunements": [
+        "Verdant"
+      ],
+      "heightCm": 164,
+      "voiceNote": "Gentle soprano, sleepy humor",
+      "baseStars": 3,
+      "maxLevelSoft": 50,
+      "unlock": "post_1_5",
+      "statsLv1": {
+        "hp": 940,
+        "atk": 175,
+        "def": 92,
+        "syncRate": 12,
+        "critRate": 0.05
+      },
+      "statsLv60": {
+        "hp": 8100,
+        "atk": 1480,
+        "def": 760,
+        "syncRate": 47,
+        "critRate": 0.09
+      },
+      "healPower": 0.3,
+      "skills": {
+        "passiveId": "wren_caretaker_reserve",
+        "basicId": "wren_sip_suture",
+        "burstId": "wren_ward_round",
+        "bondId": null
+      },
+      "preferredGifts": [
+        "herbal_sachet_t1"
+      ],
+      "bondPartnerIds": [
+        "mira"
+      ],
+      "paletteHex": {
+        "primary": "#22C55E",
+        "accent": "#6EE7B7"
+      }
+    }
+  ]
+}

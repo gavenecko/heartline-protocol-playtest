@@ -1,0 +1,212 @@
+{
+  "chapter": 1,
+  "stages": [
+    {
+      "id": "1-1",
+      "name": "Lease Breach \u2014 Lobby",
+      "type": "Story",
+      "staminaCost": 0,
+      "enemyTags": [
+        "swarm",
+        "soft"
+      ],
+      "teachingGoal": "Match-3, Sync Gauge, Mira Burst",
+      "forceMiraBurst": true,
+      "unlockAgentOnClear": "",
+      "setsCh1Complete": false,
+      "rewards": {
+        "lumaCoins": 500,
+        "xp": 80,
+        "crystals": 0
+      }
+    },
+    {
+      "id": "1-2",
+      "name": "Rain Plaza Static",
+      "type": "Story",
+      "staminaCost": 6,
+      "enemyTags": [
+        "swarm"
+      ],
+      "teachingGoal": "Cascades + combo meter",
+      "forceMiraBurst": false,
+      "unlockAgentOnClear": "",
+      "setsCh1Complete": false,
+      "rewards": {
+        "lumaCoins": 600,
+        "xp": 100,
+        "crystals": 0
+      }
+    },
+    {
+      "id": "1-3",
+      "name": "Metro Flood Gate",
+      "type": "Story",
+      "staminaCost": 6,
+      "enemyTags": [
+        "armored_light",
+        "front_bias"
+      ],
+      "teachingGoal": "Lane: Juniper Front soaks",
+      "forceMiraBurst": false,
+      "unlockAgentOnClear": "",
+      "setsCh1Complete": false,
+      "rewards": {
+        "lumaCoins": 650,
+        "xp": 110,
+        "crystals": 0
+      }
+    },
+    {
+      "id": "1-4",
+      "name": "Signage Canyon",
+      "type": "Story",
+      "staminaCost": 6,
+      "enemyTags": [
+        "ranged",
+        "back"
+      ],
+      "teachingGoal": "Target Back threats; Ivy Burst",
+      "forceMiraBurst": false,
+      "unlockAgentOnClear": "",
+      "setsCh1Complete": false,
+      "rewards": {
+        "lumaCoins": 700,
+        "xp": 120,
+        "crystals": 0
+      }
+    },
+    {
+      "id": "1-5",
+      "name": "Clinic Shuttle Dock",
+      "type": "Story",
+      "staminaCost": 6,
+      "enemyTags": [
+        "debuff",
+        "dot"
+      ],
+      "teachingGoal": "Heal pressure \u2192 Wren unlock",
+      "forceMiraBurst": false,
+      "unlockAgentOnClear": "wren",
+      "setsCh1Complete": false,
+      "rewards": {
+        "lumaCoins": 800,
+        "xp": 140,
+        "crystals": 0
+      }
+    },
+    {
+      "id": "1-6",
+      "name": "Quay Bridge Mid",
+      "type": "Story",
+      "staminaCost": 6,
+      "enemyTags": [
+        "mixed"
+      ],
+      "teachingGoal": "Full 4-squad; color attunement",
+      "forceMiraBurst": false,
+      "unlockAgentOnClear": "",
+      "setsCh1Complete": false,
+      "rewards": {
+        "lumaCoins": 850,
+        "xp": 150,
+        "crystals": 0
+      }
+    },
+    {
+      "id": "1-7",
+      "name": "Corp Kiosk Ambush",
+      "type": "EliteLite",
+      "staminaCost": 10,
+      "enemyTags": [
+        "armor",
+        "elite_lite"
+      ],
+      "teachingGoal": "Sustained Burst DPS race",
+      "forceMiraBurst": false,
+      "unlockAgentOnClear": "",
+      "setsCh1Complete": false,
+      "rewards": {
+        "lumaCoins": 1200,
+        "xp": 200,
+        "crystals": 0
+      }
+    },
+    {
+      "id": "1-8",
+      "name": "Rooftop Garden Sparks",
+      "type": "Story",
+      "staminaCost": 6,
+      "enemyTags": [
+        "swarm",
+        "prism_spawn"
+      ],
+      "teachingGoal": "Prism wild gem intro",
+      "forceMiraBurst": false,
+      "unlockAgentOnClear": "",
+      "setsCh1Complete": false,
+      "rewards": {
+        "lumaCoins": 900,
+        "xp": 160,
+        "crystals": 0
+      }
+    },
+    {
+      "id": "1-9",
+      "name": "Basement Training Echo",
+      "type": "Story",
+      "staminaCost": 6,
+      "enemyTags": [
+        "mirror",
+        "telegraph"
+      ],
+      "teachingGoal": "Enemy Burst telegraph; Assist Aim",
+      "forceMiraBurst": false,
+      "unlockAgentOnClear": "",
+      "setsCh1Complete": false,
+      "rewards": {
+        "lumaCoins": 950,
+        "xp": 170,
+        "crystals": 0
+      }
+    },
+    {
+      "id": "1-10",
+      "name": "Boss: Lease Reclaimer",
+      "type": "Boss",
+      "staminaCost": 15,
+      "enemyTags": [
+        "boss",
+        "multi_phase",
+        "lane_shift"
+      ],
+      "teachingGoal": "Phase 2 lane shift; all systems",
+      "forceMiraBurst": false,
+      "unlockAgentOnClear": "",
+      "setsCh1Complete": true,
+      "rewards": {
+        "lumaCoins": 2500,
+        "xp": 400,
+        "crystals": 100
+      }
+    },
+    {
+      "id": "1-B",
+      "name": "Lobby Sweep",
+      "type": "Grind",
+      "staminaCost": 6,
+      "enemyTags": [
+        "swarm"
+      ],
+      "teachingGoal": "Post-clear Stamina sink",
+      "forceMiraBurst": false,
+      "unlockAgentOnClear": "",
+      "setsCh1Complete": true,
+      "rewards": {
+        "lumaCoins": 700,
+        "xp": 100,
+        "crystals": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "staminaCap": 120,
+  "staminaRegenMinutes": 6,
+  "heartEnergyCap": 60,
+  "heartEnergyRegenMinutes": 8,
+  "startingWallet": {
+    "stamina": 120,
+    "heartEnergy": 60,
+    "lumaCoins": 5000,
+    "pulseCrystals": 1600,
+    "beginnerTickets": 10,
+    "standardTickets": 0
+  },
+  "room": {
+    "talkCostHe": 5,
+    "talkAffXp": 20,
+    "giftCostHe": 8,
+    "giftAffXpBase": 40,
+    "giftPreferredMultiplier": 1.5,
+    "dateCostHe": 15,
+    "dateAffXp": 100,
+    "datePerDay": 1,
+    "sleepoverAffXpMorning": 30,
+    "affRankThresholds": { "1": 0, "2": 100, "3": 300 },
+    "maxAffRankSlice": 3
+  },
+  "stageCosts": {
+    "1-1": 0,
+    "1-2": 6,
+    "1-3": 6,
+    "1-4": 6,
+    "1-5": 6,
+    "1-6": 6,
+    "1-7": 10,
+    "1-8": 6,
+    "1-9": 6,
+    "1-10": 15,
+    "1-B": 6
+  },
+  "comboMultipliers": [
+    { "minCombo": 1, "multiplier": 1.0 },
+    { "minCombo": 3, "multiplier": 1.2 },
+    { "minCombo": 5, "multiplier": 1.5 },
+    { "minCombo": 8, "multiplier": 2.0 }
+  ],
+  "syncGauge": {
+    "basicThreshold": 0.20,
+    "burstThreshold": 1.0,
+    "burstLockTurns": 1,
+    "attunedFillPerGem": 0.04,
+    "prismFillPerGem": 0.05,
+    "offColorFillPerGem": 0.01
+  },
+  "laneModifiers": {
+    "Front": { "damageDealt": 1.15, "damageTaken": 1.25 },
+    "Mid": { "damageDealt": 1.0, "damageTaken": 1.0 },
+    "Back": { "damageDealt": 0.9, "damageTaken": 0.75, "healBonus": 1.15 }
+  },
+  "jobs": {
+    "cafe_shift": {
+      "durationMinutes": 120,
+      "yieldLumaCoins": 1200,
+      "debugAcceleratedSeconds": 10
+    }
+  },
+  "debugStaminaRegenMultiplier": 10
+}
