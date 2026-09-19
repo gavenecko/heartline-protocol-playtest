@@ -689,6 +689,63 @@
       "contentNotes": "Adult 26. Secret unlock. SFW glamorous design; voluptuous adult proportions.",
       "secret": true,
       "codexHiddenUntilUnlock": true
+    },
+    {
+      "id": "rook",
+      "displayName": "Rook Hale",
+      "codename": "Ash Circuit",
+      "age": 24,
+      "rarity": "SSR",
+      "role": "Striker",
+      "faction": "Independent (Secret)",
+      "preferredLanes": [
+        "Front",
+        "Mid"
+      ],
+      "gemAttunements": [
+        "Crimson",
+        "Violet"
+      ],
+      "heightCm": 173,
+      "voiceNote": "Dry alto, half-smirk energy",
+      "baseStars": 4,
+      "maxLevelSoft": 70,
+      "unlock": "secret_arena_wins_3",
+      "roleBlurb": "Secret SSR Striker \u2014 goth tomboy who hangs around Arena shadows. Unlock after 3 Arena wins.",
+      "statsLv1": {
+        "hp": 900,
+        "atk": 245,
+        "def": 85,
+        "syncRate": 11,
+        "critRate": 0.09
+      },
+      "statsLv60": {
+        "hp": 8200,
+        "atk": 2150,
+        "def": 680,
+        "syncRate": 44,
+        "critRate": 0.19
+      },
+      "skills": {
+        "passiveId": "rook_undercut",
+        "basicId": "rook_jab",
+        "burstId": "rook_blackout_rush",
+        "bondId": "rook_velvet"
+      },
+      "preferredGifts": [
+        "vinyl_bootleg_t2"
+      ],
+      "bondPartnerIds": [
+        "velvet",
+        "luce"
+      ],
+      "paletteHex": {
+        "primary": "#E23B4A",
+        "accent": "#12182B"
+      },
+      "contentNotes": "Adult 24. Goth tomboy. Secret unlock via Arena.",
+      "secret": true,
+      "codexHiddenUntilUnlock": true
     }
   ]
 }

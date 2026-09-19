@@ -47,6 +47,7 @@ namespace Heartline.Save
         // Arena stub
         public int arenaMarks;
         public int arenaAttacksUsed;
+        public int arenaWinsLifetime;
         public string arenaUtcDate = "";
 
         // Tower / Abyss stub (slice: 10 of 50)
@@ -341,6 +342,7 @@ namespace Heartline.Save
         {
             "mira" => 4,
             "velvet" => 5,
+            "rook" => 4,
             "wren" => 3,
             "ivy" => 2,
             "juniper" => 2,
@@ -377,6 +379,7 @@ namespace Heartline.Save
                 dailyClaimedIds = new List<string>(),
                 arenaMarks = 0,
                 arenaAttacksUsed = 0,
+                arenaWinsLifetime = 0,
                 arenaUtcDate = "",
                 towerHighestCleared = 0,
                 towerLastCheckpoint = 0,
