@@ -53,11 +53,19 @@ namespace Heartline.Meta
                 if (statusTextLegacy != null) statusTextLegacy.text += "\n\n" + err;
                 return;
             }
+            if (won)
+            {
+                d.arenaWinsLifetime++;
+                if (d.arenaWinsLifetime >= 3)
+                    SaveService.Instance.UnlockAgent("rook");
+            }
             SaveService.Instance.Save();
             AnalyticsSink.Emit("arena_attack", $"won={won};marks={gained};opp={opp.HandlerName}");
             Refresh();
             if (statusTextLegacy != null)
-                statusTextLegacy.text += $"\n\nvs {opp.HandlerName}: {(won ? "WIN" : "LOSS")} · +{gained} Arena Marks";
+                var secret = (won && d.arenaWinsLifetime >= 3 && d.unlockedAgents != null && d.unlockedAgents.Contains("rook"))
+                    ? " · Secret agent Rook Hale unlocked!" : "";
+                statusTextLegacy.text += $"\n\nvs {opp.HandlerName}: {(won ? "WIN" : "LOSS")} · +{gained} Arena Marks (career wins {d.arenaWinsLifetime})" + secret;
         }
 
         public void Back() => SceneManager.LoadScene("02_Hub");
