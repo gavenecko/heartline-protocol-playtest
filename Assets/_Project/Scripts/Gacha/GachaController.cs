@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -17,8 +18,6 @@ namespace Heartline.Gacha
         [SerializeField] Text ratesTextLegacy;
         [SerializeField] Text resultTextLegacy;
 
-        static readonly string[] Pool = { "mira", "ivy", "juniper", "wren", "n_filler_a", "n_filler_b", "n_filler_c", "n_filler_d" };
-
         public void BindLegacy(Text rates, Text result)
         {
             ratesTextLegacy = rates;
@@ -27,9 +26,18 @@ namespace Heartline.Gacha
 
         void OnEnable()
         {
-            HudText.Set(ratesText, ratesTextLegacy,
-                "Beginner Banner (local stub)\nSSR 1% · SR 10% · R 40% · N 49%\nSoft pity: SR@10 · SSR@30 · max 40\nNo IAP. Not Now has no penalty.");
+            RefreshRates();
             AnalyticsSink.Emit("gacha_open", "banner_id=beginner");
+        }
+
+        void RefreshRates()
+        {
+            var d = SaveService.Instance.Data;
+            HudText.Set(ratesText, ratesTextLegacy,
+                GachaMath.RatesUiText() +
+                $"\nPity: SR {d.beginnerPitySr}/{GachaMath.SoftPitySr} · SSR {d.beginnerPitySsr}/{GachaMath.HardPitySsr}" +
+                $"\nEcho Tickets {d.beginnerTickets} · PC {d.pulseCrystals}" +
+                (d.beginnerFreePullUsed ? "\nFree sample: used" : "\nFree sample: available"));
         }
 
         public void FreeTenPull()
@@ -37,24 +45,91 @@ namespace Heartline.Gacha
             var d = SaveService.Instance.Data;
             if (d.beginnerFreePullUsed)
             {
-                HudText.Set(resultText, resultTextLegacy, "Free sample already used.");
+                HudText.Set(resultText, resultTextLegacy, "Free sample already used. Use Tickets or Crystals.");
                 return;
             }
             d.beginnerFreePullUsed = true;
-            var rng = new System.Random();
-            var results = new List<string>();
-            for (int i = 0; i < 10; i++)
-                results.Add(Pool[rng.Next(Pool.Length)]);
-            if (results.TrueForAll(r => r.StartsWith("n_")))
-                results[9] = "wren";
-            foreach (var id in results)
-            {
-                if (id.StartsWith("n_")) continue;
-                if (!d.unlockedAgents.Contains(id)) d.unlockedAgents.Add(id);
-            }
+            var summary = RunTenPull(d, new System.Random());
             SaveService.Instance.Save();
-            AnalyticsSink.Emit("gacha_pull", $"banner_id=beginner;count=10;results={string.Join(',', results)}");
-            HudText.Set(resultText, resultTextLegacy, "Results: " + string.Join(", ", results));
+            AnalyticsSink.Emit("gacha_pull", "banner_id=beginner;count=10;paid=free;" + summary.Analytics);
+            HudText.Set(resultText, resultTextLegacy, summary.Display);
+            RefreshRates();
+        }
+
+        public void PullWithTickets()
+        {
+            var d = SaveService.Instance.Data;
+            if (!GachaMath.TrySpendTenPull(ref d.beginnerTickets, ref d.pulseCrystals, useTickets: true, out var err))
+            {
+                HudText.Set(resultText, resultTextLegacy, err);
+                return;
+            }
+            var summary = RunTenPull(d, new System.Random());
+            SaveService.Instance.Save();
+            AnalyticsSink.Emit("gacha_pull", "banner_id=beginner;count=10;paid=tickets;" + summary.Analytics);
+            HudText.Set(resultText, resultTextLegacy, summary.Display);
+            RefreshRates();
+        }
+
+        public void PullWithCrystals()
+        {
+            var d = SaveService.Instance.Data;
+            if (!GachaMath.TrySpendTenPull(ref d.beginnerTickets, ref d.pulseCrystals, useTickets: false, out var err))
+            {
+                HudText.Set(resultText, resultTextLegacy, err);
+                return;
+            }
+            var summary = RunTenPull(d, new System.Random());
+            SaveService.Instance.Save();
+            AnalyticsSink.Emit("gacha_pull", "banner_id=beginner;count=10;paid=crystals;" + summary.Analytics);
+            HudText.Set(resultText, resultTextLegacy, summary.Display);
+            RefreshRates();
+        }
+
+        sealed class PullSummary
+        {
+            public string Display;
+            public string Analytics;
+        }
+
+        static PullSummary RunTenPull(HeartlineSave d, System.Random rng)
+        {
+            var lines = new List<string>();
+            int fragTotal = 0;
+            var ids = new List<string>();
+            for (int i = 0; i < 10; i++)
+            {
+                var rarity = GachaMath.Roll(rng, ref d.beginnerPitySr, ref d.beginnerPitySsr);
+                string agent = GachaMath.PickAgent(rarity, rng);
+                ids.Add($"{agent}({rarity})");
+                bool owned = !agent.StartsWith("n_") && d.unlockedAgents.Contains(agent);
+                if (agent.StartsWith("n_"))
+                {
+                    fragTotal += GachaMath.FragmentsFor(GachaRarity.N);
+                    lines.Add($"{agent} N → +{GachaMath.FragN} frag");
+                }
+                else if (!owned)
+                {
+                    d.unlockedAgents.Add(agent);
+                    lines.Add($"NEW {agent} {rarity}");
+                }
+                else
+                {
+                    int fr = GachaMath.FragmentsFor(rarity);
+                    d.AddFragments(agent, fr);
+                    fragTotal += fr;
+                    lines.Add($"DUP {agent} {rarity} → +{fr} frag");
+                }
+            }
+            var sb = new StringBuilder();
+            sb.AppendLine("10-pull results:");
+            foreach (var l in lines) sb.AppendLine("· " + l);
+            if (fragTotal > 0) sb.AppendLine($"Echo Fragments gained: {fragTotal}");
+            return new PullSummary
+            {
+                Display = sb.ToString(),
+                Analytics = $"results={string.Join(',', ids)};frags={fragTotal}"
+            };
         }
 
         public void NotNow()

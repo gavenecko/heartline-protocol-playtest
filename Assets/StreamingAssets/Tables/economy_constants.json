@@ -21,7 +21,11 @@
     "dateAffXp": 100,
     "datePerDay": 1,
     "sleepoverAffXpMorning": 30,
-    "affRankThresholds": { "1": 0, "2": 100, "3": 300 },
+    "affRankThresholds": {
+      "1": 0,
+      "2": 100,
+      "3": 300
+    },
     "maxAffRankSlice": 3
   },
   "stageCosts": {
@@ -38,13 +42,25 @@
     "1-B": 6
   },
   "comboMultipliers": [
-    { "minCombo": 1, "multiplier": 1.0 },
-    { "minCombo": 3, "multiplier": 1.2 },
-    { "minCombo": 5, "multiplier": 1.5 },
-    { "minCombo": 8, "multiplier": 2.0 }
+    {
+      "minCombo": 1,
+      "multiplier": 1.0
+    },
+    {
+      "minCombo": 3,
+      "multiplier": 1.2
+    },
+    {
+      "minCombo": 5,
+      "multiplier": 1.5
+    },
+    {
+      "minCombo": 8,
+      "multiplier": 2.0
+    }
   ],
   "syncGauge": {
-    "basicThreshold": 0.20,
+    "basicThreshold": 0.2,
     "burstThreshold": 1.0,
     "burstLockTurns": 1,
     "attunedFillPerGem": 0.04,
@@ -52,16 +68,67 @@
     "offColorFillPerGem": 0.01
   },
   "laneModifiers": {
-    "Front": { "damageDealt": 1.15, "damageTaken": 1.25 },
-    "Mid": { "damageDealt": 1.0, "damageTaken": 1.0 },
-    "Back": { "damageDealt": 0.9, "damageTaken": 0.75, "healBonus": 1.15 }
+    "Front": {
+      "damageDealt": 1.15,
+      "damageTaken": 1.25
+    },
+    "Mid": {
+      "damageDealt": 1.0,
+      "damageTaken": 1.0
+    },
+    "Back": {
+      "damageDealt": 0.9,
+      "damageTaken": 0.75,
+      "healBonus": 1.15
+    }
   },
   "jobs": {
     "cafe_shift": {
       "durationMinutes": 120,
       "yieldLumaCoins": 1200,
-      "debugAcceleratedSeconds": 10
+      "debugAcceleratedSeconds": 10,
+      "preferredAgentId": "wren",
+      "preferredBonusMul": 1.2
+    },
+    "pier_patrol": {
+      "durationMinutes": 60,
+      "yieldLumaCoins": 600,
+      "debugAcceleratedSeconds": 8,
+      "preferredAgentId": "ivy",
+      "preferredBonusMul": 1.2
+    },
+    "clinic_assist": {
+      "durationMinutes": 90,
+      "yieldLumaCoins": 900,
+      "debugAcceleratedSeconds": 9,
+      "preferredAgentId": "juniper",
+      "preferredBonusMul": 1.2
     }
   },
-  "debugStaminaRegenMultiplier": 10
+  "debugStaminaRegenMultiplier": 10,
+  "gacha": {
+    "beginner": {
+      "rateSsr": 0.01,
+      "rateSr": 0.1,
+      "rateR": 0.4,
+      "rateN": 0.49,
+      "softPitySr": 10,
+      "softPitySsr": 30,
+      "hardPitySsr": 40,
+      "crystalCostSingle": 160,
+      "crystalCostTen": 1600,
+      "ticketCostTen": 10,
+      "fragSsr": 50,
+      "fragSr": 20,
+      "fragR": 5,
+      "fragN": 1
+    }
+  },
+  "giftShop": {
+    "sunwell_tea_t1": 500,
+    "protein_bar_t1": 400,
+    "instant_cocoa_t1": 400,
+    "herbal_sachet_t1": 400
+  },
+  "saveSchema": 3
 }

@@ -10,6 +10,7 @@ namespace Heartline.Shared
         public int staminaRegenMinutes = 6;
         public int heartEnergyCap = 60;
         public int heartEnergyRegenMinutes = 8;
+        public int saveSchema = 3;
         public WalletSeed startingWallet = new WalletSeed();
         public RoomEconomy room = new RoomEconomy();
         public Dictionary<string, int> stageCosts = new Dictionary<string, int>();
@@ -17,6 +18,8 @@ namespace Heartline.Shared
         public SyncGaugeConfig syncGauge = new SyncGaugeConfig();
         public Dictionary<string, LaneModifier> laneModifiers = new Dictionary<string, LaneModifier>();
         public JobsConfig jobs = new JobsConfig();
+        public GachaConfig gacha = new GachaConfig();
+        public Dictionary<string, int> giftShop = new Dictionary<string, int>();
         public float debugStaminaRegenMultiplier = 10f;
 
         public float ComboMultiplier(int combo)
@@ -101,7 +104,9 @@ namespace Heartline.Shared
     [Serializable]
     public class JobsConfig
     {
-        public JobDef cafe_shift = new JobDef();
+        public JobDef cafe_shift = new JobDef { durationMinutes = 120, yieldLumaCoins = 1200, preferredAgentId = "wren" };
+        public JobDef pier_patrol = new JobDef { durationMinutes = 60, yieldLumaCoins = 600, preferredAgentId = "ivy", debugAcceleratedSeconds = 8 };
+        public JobDef clinic_assist = new JobDef { durationMinutes = 90, yieldLumaCoins = 900, preferredAgentId = "juniper", debugAcceleratedSeconds = 9 };
     }
 
     [Serializable]
@@ -110,5 +115,32 @@ namespace Heartline.Shared
         public int durationMinutes = 120;
         public int yieldLumaCoins = 1200;
         public int debugAcceleratedSeconds = 10;
+        public string preferredAgentId = "";
+        public float preferredBonusMul = 1.2f;
+    }
+
+    [Serializable]
+    public class GachaConfig
+    {
+        public BeginnerBanner beginner = new BeginnerBanner();
+    }
+
+    [Serializable]
+    public class BeginnerBanner
+    {
+        public float rateSsr = 0.01f;
+        public float rateSr = 0.10f;
+        public float rateR = 0.40f;
+        public float rateN = 0.49f;
+        public int softPitySr = 10;
+        public int softPitySsr = 30;
+        public int hardPitySsr = 40;
+        public int crystalCostSingle = 160;
+        public int crystalCostTen = 1600;
+        public int ticketCostTen = 10;
+        public int fragSsr = 50;
+        public int fragSr = 20;
+        public int fragR = 5;
+        public int fragN = 1;
     }
 }

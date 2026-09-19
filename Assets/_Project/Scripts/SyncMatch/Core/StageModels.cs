@@ -87,5 +87,16 @@ namespace Heartline.SyncMatch
             if (prev == null) return true;
             return cleared != null && cleared.Contains(prev);
         }
+
+        public static string UnlockReason(string stageId, ICollection<string> cleared, bool ch1Complete)
+        {
+            if (IsUnlocked(stageId, cleared, ch1Complete)) return null;
+            if (stageId == "1-B" || stageId == "1-b")
+                return "Clear boss 1-10 to unlock grind node 1-B.";
+            var prev = PreviousStageId(stageId);
+            if (prev != null)
+                return $"Clear {prev} first.";
+            return "Locked.";
+        }
     }
 }

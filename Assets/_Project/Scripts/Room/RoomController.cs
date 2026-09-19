@@ -39,7 +39,7 @@ namespace Heartline.Room
             d.miraAffRank = Rank(d.miraAffXp);
             string next = d.miraAffRank >= 3 ? "cap" : (d.miraAffRank == 1 ? $"{GameConstants.AffRank2Xp}" : $"{GameConstants.AffRank3Xp}");
             HudText.Set(affText, affTextLegacy, $"Mira Aff {d.miraAffRank}/{GameConstants.MaxAffRankSlice}  XP {d.miraAffXp} (→{next})");
-            HudText.Set(energyText, energyTextLegacy, $"HE {d.heartEnergy}/{GameConstants.HeartEnergyCap} · Tea×{d.sunwellTeaCount}");
+            HudText.Set(energyText, energyTextLegacy, $"HE {d.heartEnergy}/{GameConstants.HeartEnergyCap} · LC {d.lumaCoins} · Tea×{d.sunwellTeaCount}");
         }
 
         public void Talk()
@@ -184,6 +184,22 @@ namespace Heartline.Room
         }
 
         void SetDialogue(string msg) => HudText.Set(dialogueText, dialogueTextLegacy, msg);
+
+
+        public void BuySunwellTea()
+        {
+            var d = SaveService.Instance.Data;
+            if (!GiftShop.TryBuy("sunwell_tea_t1", ref d.lumaCoins, ref d.sunwellTeaCount, out var err))
+            {
+                SetDialogue(err);
+                Refresh();
+                return;
+            }
+            SaveService.Instance.Save();
+            AnalyticsSink.Emit("shop_buy", $"item=sunwell_tea_t1;price={GiftShop.SunwellTeaPriceLc}");
+            SetDialogue($"Bought Sunwell Tea (−{GiftShop.SunwellTeaPriceLc} LC). Stock ×{d.sunwellTeaCount}.");
+            Refresh();
+        }
 
         public void Back() => SceneManager.LoadScene("02_Hub");
     }

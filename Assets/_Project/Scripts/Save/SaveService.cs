@@ -9,7 +9,7 @@ namespace Heartline.Save
     [Serializable]
     public class HeartlineSave
     {
-        public int schema = 2;
+        public int schema = GameConstants.SaveSchemaVersion;
         public string playerIdLocal;
         public bool ageGatePassed;
         public bool sfwMode = true;
@@ -34,10 +34,15 @@ namespace Heartline.Save
         public bool datedMiraToday;
         public int sunwellTeaCount = 2;
         public bool beginnerFreePullUsed;
+        public int beginnerPitySr;
+        public int beginnerPitySsr;
+        public List<string> echoFragmentEntries = new List<string>(); // "mira:50"
+        public List<JobSlotSave> jobSlots = new List<JobSlotSave>();
+
+        // Legacy single-slot fields (migrated into jobSlots)
         public string cafeJobCompleteAtIso;
         public string cafeAssignedAgentId;
 
-        // Convenience aliases for UI/battle scripts
         public int Stamina { get => stamina; set => stamina = value; }
         public int HeartEnergy { get => heartEnergy; set => heartEnergy = value; }
         public int LumaCoins { get => lumaCoins; set => lumaCoins = value; }
@@ -83,6 +88,72 @@ namespace Heartline.Save
             if (seenDialogueIds == null) seenDialogueIds = new List<string>();
             if (!seenDialogueIds.Contains(id)) seenDialogueIds.Add(id);
         }
+
+        public int GetFragments(string agentId)
+        {
+            if (echoFragmentEntries == null || string.IsNullOrEmpty(agentId)) return 0;
+            foreach (var e in echoFragmentEntries)
+            {
+                if (string.IsNullOrEmpty(e)) continue;
+                var parts = e.Split(':');
+                if (parts.Length == 2 && parts[0] == agentId && int.TryParse(parts[1], out var n))
+                    return n;
+            }
+            return 0;
+        }
+
+        public void AddFragments(string agentId, int amount)
+        {
+            if (string.IsNullOrEmpty(agentId) || amount <= 0) return;
+            if (echoFragmentEntries == null) echoFragmentEntries = new List<string>();
+            int cur = GetFragments(agentId);
+            for (int i = 0; i < echoFragmentEntries.Count; i++)
+            {
+                if (echoFragmentEntries[i] != null && echoFragmentEntries[i].StartsWith(agentId + ":"))
+                {
+                    echoFragmentEntries[i] = agentId + ":" + (cur + amount);
+                    return;
+                }
+            }
+            echoFragmentEntries.Add(agentId + ":" + (cur + amount));
+        }
+
+        public JobSlotSave GetOrCreateJobSlot(string jobId)
+        {
+            if (jobSlots == null) jobSlots = new List<JobSlotSave>();
+            foreach (var s in jobSlots)
+                if (s != null && s.jobId == jobId) return s;
+            var created = new JobSlotSave { jobId = jobId };
+            jobSlots.Add(created);
+            return created;
+        }
+
+        public void EnsureJobSlots()
+        {
+            if (jobSlots == null) jobSlots = new List<JobSlotSave>();
+            foreach (var def in JobMath.Catalog)
+                GetOrCreateJobSlot(def.Id);
+            // Migrate legacy café fields
+            if (!string.IsNullOrEmpty(cafeJobCompleteAtIso))
+            {
+                var cafe = GetOrCreateJobSlot("cafe_shift");
+                if (string.IsNullOrEmpty(cafe.completeAtIso))
+                {
+                    cafe.completeAtIso = cafeJobCompleteAtIso;
+                    cafe.assignedAgentId = cafeAssignedAgentId;
+                }
+                cafeJobCompleteAtIso = null;
+                cafeAssignedAgentId = null;
+            }
+        }
+    }
+
+    [Serializable]
+    public class JobSlotSave
+    {
+        public string jobId;
+        public string assignedAgentId;
+        public string completeAtIso;
     }
 
     [Serializable]
@@ -109,7 +180,8 @@ namespace Heartline.Save
         public static SaveService Instance { get; private set; }
         public HeartlineSave Data { get; private set; }
 
-        string PathFile => System.IO.Path.Combine(Application.persistentDataPath, "heartline_save_v1.json");
+        string PathFile => System.IO.Path.Combine(Application.persistentDataPath, "heartline_save_v3.json");
+        string LegacyPath => System.IO.Path.Combine(Application.persistentDataPath, "heartline_save_v1.json");
 
         void Awake()
         {
@@ -121,15 +193,14 @@ namespace Heartline.Save
 
         public void LoadOrCreate()
         {
-            if (File.Exists(PathFile))
+            string path = File.Exists(PathFile) ? PathFile : (File.Exists(LegacyPath) ? LegacyPath : null);
+            if (path != null)
             {
                 try
                 {
-                    Data = JsonUtility.FromJson<HeartlineSave>(File.ReadAllText(PathFile));
+                    Data = JsonUtility.FromJson<HeartlineSave>(File.ReadAllText(path));
                     if (Data == null) throw new Exception("null save");
-                    if (Data.seenDialogueIds == null) Data.seenDialogueIds = new List<string>();
-                    if (Data.stageStarEntries == null) Data.stageStarEntries = new List<string>();
-                    if (Data.squad == null) Data.squad = new SquadSave();
+                    Migrate(Data);
                 }
                 catch
                 {
@@ -140,10 +211,23 @@ namespace Heartline.Save
             ApplyRegen();
         }
 
+        static void Migrate(HeartlineSave d)
+        {
+            if (d.seenDialogueIds == null) d.seenDialogueIds = new List<string>();
+            if (d.stageStarEntries == null) d.stageStarEntries = new List<string>();
+            if (d.echoFragmentEntries == null) d.echoFragmentEntries = new List<string>();
+            if (d.squad == null) d.squad = new SquadSave();
+            if (d.jobSlots == null) d.jobSlots = new List<JobSlotSave>();
+            d.EnsureJobSlots();
+            if (d.schema < GameConstants.SaveSchemaVersion)
+                d.schema = GameConstants.SaveSchemaVersion;
+        }
+
         public HeartlineSave NewGame()
         {
             var s = new HeartlineSave
             {
+                schema = GameConstants.SaveSchemaVersion,
                 playerIdLocal = Guid.NewGuid().ToString("N"),
                 lastStaminaUtc = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                 lastHeartUtc = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
@@ -161,20 +245,25 @@ namespace Heartline.Save
                     back1 = ""
                 },
                 seenDialogueIds = new List<string>(),
-                stageStarEntries = new List<string>()
+                stageStarEntries = new List<string>(),
+                echoFragmentEntries = new List<string>(),
+                jobSlots = new List<JobSlotSave>()
             };
+            s.EnsureJobSlots();
             return s;
         }
 
         public void Save()
         {
             ApplyRegen();
+            Data.schema = GameConstants.SaveSchemaVersion;
             File.WriteAllText(PathFile, JsonUtility.ToJson(Data, true));
         }
 
         public void ResetAll()
         {
             if (File.Exists(PathFile)) File.Delete(PathFile);
+            if (File.Exists(LegacyPath)) File.Delete(LegacyPath);
             Data = NewGame();
             Save();
         }
@@ -182,18 +271,8 @@ namespace Heartline.Save
         public void ApplyRegen()
         {
             var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            Regen(ref Data.stamina, ref Data.lastStaminaUtc, now, GameConstants.StaminaCap, GameConstants.StaminaRegenMinutes * 60);
-            Regen(ref Data.heartEnergy, ref Data.lastHeartUtc, now, GameConstants.HeartEnergyCap, GameConstants.HeartRegenMinutes * 60);
-        }
-
-        static void Regen(ref int value, ref long lastUtc, long now, int cap, int secondsPerPoint)
-        {
-            if (value >= cap) { lastUtc = now; return; }
-            var elapsed = now - lastUtc;
-            if (elapsed < secondsPerPoint) return;
-            var points = (int)(elapsed / secondsPerPoint);
-            value = Math.Min(cap, value + points);
-            lastUtc += points * (long)secondsPerPoint;
+            EconomyRegen.ApplyStamina(ref Data.stamina, ref Data.lastStaminaUtc, now);
+            EconomyRegen.ApplyHeart(ref Data.heartEnergy, ref Data.lastHeartUtc, now);
         }
     }
 }

@@ -3,7 +3,8 @@ namespace Heartline.Shared
     public static class GameConstants
     {
         public const string ProductName = "Heartline Protocol";
-        public const string SliceVersion = "0.1.0-slice";
+        public const string SliceVersion = "0.2.0-slice";
+        public const int SaveSchemaVersion = 3;
 
         public const int MaxAffRankSlice = 3;
         public const int AffRank2Xp = 100;
@@ -22,5 +23,7 @@ namespace Heartline.Shared
         public const int HeartEnergyCap = 60;
         public const int StaminaRegenMinutes = 6;
         public const int HeartRegenMinutes = 8;
+
+        public const int GiftShopSunwellTeaLc = 500;
     }
 }

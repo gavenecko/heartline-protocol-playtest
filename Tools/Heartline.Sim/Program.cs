@@ -29,6 +29,11 @@ static class Program
         TestStageStarRating();
         TestBondMatrix();
         TestSquadLogic();
+        TestEconomyRegen();
+        TestGachaPity();
+        TestJobPayouts();
+        TestGiftShopSink();
+        TestStageUnlockReason();
 
         Console.WriteLine();
         Console.WriteLine($"Passed: {_passed}  Failed: {_failed}");
@@ -350,6 +355,99 @@ static class Program
 
 
 
+
+
+    static void TestEconomyRegen()
+    {
+        int sta = 100;
+        long last = 1_000_000;
+        // 6 min = 360s per point → after 720s expect +2
+        int gained = EconomyRegen.ApplyStamina(ref sta, ref last, 1_000_000 + 720);
+        Assert(gained == 2 && sta == 102, "regen: stamina +2 over 12 min");
+        Assert(last == 1_000_000 + 720, "regen: lastUtc advanced by points*interval");
+
+        int he = 59;
+        long hLast = 2_000_000;
+        // 8 min = 480s → +1 then at cap snaps
+        gained = EconomyRegen.ApplyHeart(ref he, ref hLast, 2_000_000 + 480);
+        Assert(gained == 1 && he == 60, "regen: HE +1 to cap");
+        Assert(hLast == 2_000_000 + 480, "regen: HE lastUtc at cap snap path");
+
+        int full = 120;
+        long fLast = 3_000_000;
+        gained = EconomyRegen.ApplyStamina(ref full, ref fLast, 3_000_000 + 10_000);
+        Assert(gained == 0 && full == 120 && fLast == 3_000_000 + 10_000, "regen: at cap no backlog");
+
+        Assert(EconomyRegen.StaminaSecondsPerPoint == 360, "regen: STA 6 min");
+        Assert(EconomyRegen.HeartSecondsPerPoint == 480, "regen: HE 8 min");
+    }
+
+    static void TestGachaPity()
+    {
+        // Hard pity: force SSR by pull 40
+        int pitySr = 0, pitySsr = 39;
+        var rng = new Random(1);
+        var r = GachaMath.Roll(rng, ref pitySr, ref pitySsr);
+        Assert(r == GachaRarity.SSR, "pity: hard@40 → SSR");
+        Assert(pitySsr == 0 && pitySr == 0, "pity: counters reset on SSR");
+
+        // Soft SR@10
+        pitySr = 9; pitySsr = 5;
+        r = GachaMath.Roll(new Random(2), ref pitySr, ref pitySsr);
+        Assert(r == GachaRarity.SR || r == GachaRarity.SSR, "pity: soft@10 → ≥SR");
+        if (r == GachaRarity.SR) Assert(pitySr == 0, "pity: SR resets SR counter");
+
+        // Soft SSR@30
+        pitySr = 0; pitySsr = 29;
+        r = GachaMath.Roll(new Random(3), ref pitySr, ref pitySsr);
+        Assert(r == GachaRarity.SSR, "pity: soft@30 → SSR");
+
+        // Duplicate → fragments
+        var unlocked = new List<string> { "mira" };
+        var frags = new Dictionary<string, int>();
+        int got = GachaMath.ApplyResult("mira", GachaRarity.SSR, unlocked, frags);
+        Assert(got == GachaMath.FragSsr && frags["mira"] == 50, "gacha: dup mira → 50 frag");
+        got = GachaMath.ApplyResult("ivy", GachaRarity.R, unlocked, frags);
+        Assert(got == 0 && unlocked.Contains("ivy"), "gacha: new ivy unlock");
+
+        int tix = 10, cry = 1600;
+        Assert(GachaMath.TrySpendTenPull(ref tix, ref cry, true, out _) && tix == 0, "gacha: spend tickets");
+        Assert(GachaMath.TrySpendTenPull(ref tix, ref cry, false, out _) && cry == 0, "gacha: spend crystals");
+        Assert(!GachaMath.TrySpendTenPull(ref tix, ref cry, true, out _), "gacha: reject empty wallet");
+    }
+
+    static void TestJobPayouts()
+    {
+        var cafe = JobMath.Get("cafe_shift");
+        Assert(cafe != null && cafe.YieldLumaCoins == 1200, "jobs: cafe base 1200");
+        Assert(JobMath.ComputePayout(cafe, "wren") == 1440, "jobs: cafe preferred Wren +20%");
+        Assert(JobMath.ComputePayout(cafe, "mira") == 1200, "jobs: cafe non-pref base");
+
+        var pier = JobMath.Get("pier_patrol");
+        Assert(pier != null && JobMath.ComputePayout(pier, "ivy") == 720, "jobs: pier Ivy bonus");
+        var clinic = JobMath.Get("clinic_assist");
+        Assert(clinic != null && JobMath.ComputePayout(clinic, "juniper") == 1080, "jobs: clinic Juni bonus");
+
+        Assert(JobMath.Catalog.Length == 3, "jobs: 3 slice jobs");
+        Assert(JobMath.IsReady(DateTime.UtcNow.AddSeconds(-1).ToString("o"), DateTime.UtcNow), "jobs: ready when past");
+        Assert(!JobMath.IsReady(DateTime.UtcNow.AddMinutes(5).ToString("o"), DateTime.UtcNow), "jobs: not ready future");
+    }
+
+    static void TestGiftShopSink()
+    {
+        int lc = 500, stock = 0;
+        Assert(GiftShop.TryBuy("sunwell_tea_t1", ref lc, ref stock, out _) && lc == 0 && stock == 1, "gift: buy tea 500 LC");
+        Assert(!GiftShop.TryBuy("sunwell_tea_t1", ref lc, ref stock, out _), "gift: reject broke");
+    }
+
+    static void TestStageUnlockReason()
+    {
+        var cleared = new HashSet<string>();
+        Assert(StageCombatMath.UnlockReason("1-2", cleared, false).Contains("1-1"), "unlock reason: 1-2 needs 1-1");
+        Assert(StageCombatMath.UnlockReason("1-B", cleared, false).Contains("1-10"), "unlock reason: 1-B needs boss");
+        cleared.Add("1-1");
+        Assert(StageCombatMath.UnlockReason("1-2", cleared, false) == null, "unlock reason: null when open");
+    }
 
     static string FindAgentsJson()
     {
