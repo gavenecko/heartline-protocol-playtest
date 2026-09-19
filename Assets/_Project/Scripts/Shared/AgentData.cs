@@ -36,6 +36,7 @@ namespace Heartline.Shared
         public List<string> dislikedGifts = new List<string>();
         public List<string> bondPartnerIds = new List<string>();
         public PaletteHex paletteHex;
+        public string roleBlurb;
         public string contentNotes;
 
         public bool IsAdult => age >= 18;

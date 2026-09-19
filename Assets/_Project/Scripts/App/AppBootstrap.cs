@@ -29,6 +29,7 @@ namespace Heartline.App
             ContentFlagsService.Instance.ConfirmAgeGate();
             AnalyticsSink.Emit("age_gate_result", "passed=true");
             SaveService.Instance.Data.ageGatePassed = true;
+            SaveService.Instance.Data.sfwMode = true;
             SaveService.Instance.Save();
             SceneManager.LoadScene(titleScene);
         }

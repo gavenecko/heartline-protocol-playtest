@@ -434,4 +434,211 @@ namespace Heartline.Sim
             }
         }
     }
+
+    /// <summary>Mirrors Heartline.Shared.ArenaMath for CI.</summary>
+    public static class ArenaMath
+    {
+        public const int FreeAttacksPerDay = 3;
+        public const int MarksWin = 25;
+        public const int MarksLoss = 5;
+
+        public sealed class DefenseTeam
+        {
+            public string HandlerName;
+            public string[] AgentIds;
+            public int PowerRating;
+            public bool IsWinLikely;
+        }
+
+        public static readonly DefenseTeam[] FakeOpponents =
+        {
+            new DefenseTeam { HandlerName = "Quay Rookie", AgentIds = new[] { "ivy", "juniper" }, PowerRating = 1200, IsWinLikely = true },
+            new DefenseTeam { HandlerName = "Circuit Fan", AgentIds = new[] { "mira", "ivy", "wren" }, PowerRating = 2400, IsWinLikely = true },
+            new DefenseTeam { HandlerName = "Aurelia Scout", AgentIds = new[] { "mira", "juniper", "wren", "ivy" }, PowerRating = 3600, IsWinLikely = false }
+        };
+
+        public static string TodayUtc(DateTime utcNow) => utcNow.ToString("yyyy-MM-dd");
+
+        public static string WeekKeyUtc(DateTime utcNow)
+        {
+            var d = utcNow.Date;
+            int diff = ((int)d.DayOfWeek + 6) % 7;
+            var monday = d.AddDays(-diff);
+            int week = System.Globalization.ISOWeek.GetWeekOfYear(monday);
+            int year = System.Globalization.ISOWeek.GetYear(monday);
+            return $"{year}-W{week:D2}";
+        }
+
+        public static bool EnsureDay(ref string arenaUtcDate, ref int attacksUsed, DateTime utcNow)
+        {
+            string today = TodayUtc(utcNow);
+            if (arenaUtcDate == today) return false;
+            arenaUtcDate = today;
+            attacksUsed = 0;
+            return true;
+        }
+
+        public static int AttacksRemaining(int attacksUsed) =>
+            Math.Max(0, FreeAttacksPerDay - Math.Max(0, attacksUsed));
+
+        public static DefenseTeam PickOpponent(int attacksUsed)
+        {
+            if (FakeOpponents.Length == 0) return null;
+            return FakeOpponents[Math.Abs(attacksUsed) % FakeOpponents.Length];
+        }
+
+        public static bool TryAttack(
+            ref int attacksUsed,
+            ref int arenaMarks,
+            DefenseTeam opponent,
+            out bool won,
+            out int marksGained,
+            out string error)
+        {
+            won = false;
+            marksGained = 0;
+            error = null;
+            if (AttacksRemaining(attacksUsed) <= 0)
+            {
+                error = "cap";
+                return false;
+            }
+            if (opponent == null)
+            {
+                error = "opp";
+                return false;
+            }
+            attacksUsed++;
+            won = opponent.IsWinLikely;
+            marksGained = won ? MarksWin : MarksLoss;
+            arenaMarks += marksGained;
+            return true;
+        }
+
+        public static int MarksForRecord(int wins, int losses) =>
+            Math.Max(0, wins) * MarksWin + Math.Max(0, losses) * MarksLoss;
+    }
+
+    /// <summary>Mirrors Heartline.Shared.TowerMath for CI.</summary>
+    public static class TowerMath
+    {
+        public const int FullFloorCount = 50;
+        public const int SliceFloorCount = 10;
+        public const int CheckpointEvery = 5;
+
+        public static int DefaultStaminaCost(int floor)
+        {
+            if (floor < 1) floor = 1;
+            if (floor <= 5) return 6;
+            if (floor <= 10) return 8;
+            if (floor <= 20) return 10;
+            if (floor <= 35) return 12;
+            return 15;
+        }
+
+        public static int StaminaCost(int floor, Func<int, int> costLookup = null)
+        {
+            if (costLookup != null)
+            {
+                int c = costLookup(floor);
+                if (c > 0) return c;
+            }
+            return DefaultStaminaCost(floor);
+        }
+
+        public static bool IsCheckpoint(int floor) =>
+            floor > 0 && floor % CheckpointEvery == 0;
+
+        public static int CheckpointFloorFor(int highestCleared)
+        {
+            if (highestCleared < CheckpointEvery) return 0;
+            return (highestCleared / CheckpointEvery) * CheckpointEvery;
+        }
+
+        public static int NextFloor(int highestCleared) => Math.Max(0, highestCleared) + 1;
+
+        public static bool IsFloorUnlocked(int floor, int highestCleared, int sliceCap = SliceFloorCount)
+        {
+            if (floor < 1 || floor > sliceCap) return false;
+            return floor <= highestCleared + 1;
+        }
+
+        public static bool CanAttempt(int floor, int highestCleared, int sliceCap = SliceFloorCount)
+        {
+            if (floor < 1 || floor > sliceCap) return false;
+            if (highestCleared >= sliceCap) return false;
+            return floor == highestCleared + 1;
+        }
+
+        public static void ApplyClear(int floor, ref int highestCleared, ref int lastCheckpoint)
+        {
+            if (floor > highestCleared) highestCleared = floor;
+            if (IsCheckpoint(floor) && floor > lastCheckpoint)
+                lastCheckpoint = floor;
+            int implied = CheckpointFloorFor(highestCleared);
+            if (implied > lastCheckpoint) lastCheckpoint = implied;
+        }
+
+        public static void ApplyFail(ref int highestCleared, int lastCheckpoint)
+        {
+            if (lastCheckpoint < 0) lastCheckpoint = 0;
+            if (highestCleared > lastCheckpoint)
+                highestCleared = lastCheckpoint;
+        }
+
+        public static int NextAttemptAfterFail(int lastCheckpoint) =>
+            Math.Max(0, lastCheckpoint) + 1;
+
+        public static bool TryClear(
+            int floor,
+            ref int stamina,
+            ref int highestCleared,
+            ref int lastCheckpoint,
+            int sliceCap,
+            Func<int, int> costLookup,
+            out string error)
+        {
+            error = null;
+            if (!CanAttempt(floor, highestCleared, sliceCap))
+            {
+                error = highestCleared >= sliceCap ? "complete" : "order";
+                return false;
+            }
+            int cost = StaminaCost(floor, costLookup);
+            if (stamina < cost)
+            {
+                error = "sta";
+                return false;
+            }
+            stamina -= cost;
+            ApplyClear(floor, ref highestCleared, ref lastCheckpoint);
+            return true;
+        }
+
+        public static bool TryFail(
+            int floor,
+            ref int stamina,
+            ref int highestCleared,
+            int lastCheckpoint,
+            int sliceCap,
+            Func<int, int> costLookup,
+            out string error)
+        {
+            error = null;
+            if (!CanAttempt(floor, highestCleared, sliceCap))
+            {
+                error = "order";
+                return false;
+            }
+            int cost = StaminaCost(floor, costLookup);
+            if (stamina < cost)
+            {
+                error = "sta";
+                return false;
+            }
+            stamina -= cost;
+            ApplyFail(ref highestCleared, lastCheckpoint);
+            return true;
+        }
+    }
 }

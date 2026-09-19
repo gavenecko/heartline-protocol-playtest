@@ -35,4 +35,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Project/Scenes/09_Missions.unity
     guid: 0000000000000000000000000000000a
+  - enabled: 1
+    path: Assets/_Project/Scenes/10_Arena.unity
+    guid: 0000000000000000000000000000000b
+  - enabled: 1
+    path: Assets/_Project/Scenes/11_Tower.unity
+    guid: 0000000000000000000000000000000c
+  - enabled: 1
+    path: Assets/_Project/Scenes/12_Codex.unity
+    guid: 0000000000000000000000000000000d
   m_configObjects: {}
