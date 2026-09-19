@@ -4,7 +4,7 @@ Offline / SFW prototype of **Heartline Protocol**: Sync Match (match-3 + lanes +
 
 **Content policy:** All agents are adults **18+**. Juniper is **21**. Slice Aff caps at **3**. No NSFW assets or systems. **Adult path blocked** on Title (SFW Mode locked ON).
 
-**Slice version:** `0.4.0-slice` · save schema **v5**
+**Slice version:** `0.5.0-slice-freeze` · save schema **v5**
 
 ## Open in Unity (preferred)
 
@@ -86,16 +86,36 @@ cd Tools/Heartline.Sim && dotnet run -c Release
 
 Expected: **204 passed, 0 failed** (board, Prism, gauge, combo, lanes, ages×12, Aff, Room, stages, FTUE, stars, Bond, squad, regen, pity, jobs, gift sink, unlock reasons, XP/promote, dailies, **arena marks**, **tower floor unlock**).
 
-## 0.4.0-slice notes
+## 0.5.0-slice-freeze notes
+
+- **Systems freeze for art:** PRs #1–#5 loops are stable enough to commission T0 art (no blocking Live2D / Aff4+ / live server).
+- Art kickoff package under `Docs/` — commission order, briefs, placeholder slots, completion checklist.
+- Empty `Assets/_Project/Art/...` folders match `PLACEHOLDER_ART_SLOTS.md` (`.gitkeep`).
+- Content policy unchanged: SFW-only · all agents 18+ · Juniper 21 · Adult path blocked.
+
+### Carried from 0.4.0-slice
 
 - Title persists ContentFlags (age gate + SFW); Adult unlock always rejected.
 - Arena / Tower / Codex reachable from Hub; save fields `arenaMarks`, `towerHighestCleared`, `towerLastCheckpoint`.
 - `agents.json` holds full launch roster seed (12); slice unlocks remain Mira→Ivy/Juniper→Wren.
 - All teaser ages ≥18 (Juniper 21); no underage invented.
 
+## Art kickoff
+
+Systems are frozen enough to commission slice art. Start here:
+
+| Doc | Role |
+|-----|------|
+| [`Docs/ART_KICKOFF.md`](Docs/ART_KICKOFF.md) | Freeze declaration, commission order, resolutions, naming, folder layout, Do/Don’t |
+| [`Docs/ART_COMMISSION_BRIEFS_SLICE.md`](Docs/ART_COMMISSION_BRIEFS_SLICE.md) | One-page briefs: Mira / Ivy / Juniper / Wren + UI chrome + 2 Room BGs + gem VFX |
+| [`Docs/PLACEHOLDER_ART_SLOTS.md`](Docs/PLACEHOLDER_ART_SLOTS.md) | Exact filenames under `Assets/_Project/Art/` (plug-and-play drops) |
+| [`Docs/COMPLETION_CHECKLIST.md`](Docs/COMPLETION_CHECKLIST.md) | Slice done vs remaining → MVP → soft launch → live |
+
+Drop art into `Assets/_Project/Art/Characters/{mira_solenne,ivy_cross,juniper_tate,wren_halcyon}/` etc. Full visual thesis remains in `Docs/heartline-protocol-art-bible.md`.
+
 ## Design docs
 
-Under `Docs/` (BUILD_READY, vertical slice, tech arch, FTUE, backlog, roster kits, art bible, economy).
+Under `Docs/` (BUILD_READY, vertical slice, tech arch, FTUE, backlog, roster kits, art bible, economy, **art kickoff package**).
 
 ## Module map (asmdefs)
 
@@ -106,4 +126,4 @@ Under `Docs/` (BUILD_READY, vertical slice, tech arch, FTUE, backlog, roster kit
 Crimson `#E23B4A` · Azure `#2F7BFF` · Verdant `#2DBE6A` · Amber `#F0A12A` · Violet `#8B5CF6` · Prism `#F5F7FF` · Neon Magenta `#FF2D8A` · Sync Cyan `#00D4FF` · Quay Indigo `#12182B` · Atelier Gold `#E8C87A`
 
 ---
-Heartline Protocol vertical slice · 2026-09-19
+Heartline Protocol vertical slice · 0.5.0-slice-freeze · 2026-09-19
