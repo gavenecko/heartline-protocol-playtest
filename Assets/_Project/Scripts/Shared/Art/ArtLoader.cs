@@ -171,6 +171,25 @@ namespace Heartline.Shared
             return null;
         }
 
+
+        public static Texture2D LoadIdlePoster(string agentId) =>
+            LoadTexture(ArtCatalog.IdlePosterResourcePath(agentId));
+
+        /// <summary>
+        /// Prefer looping idle video for Velvet/Rook; else bust. Returns true if any portrait shown.
+        /// </summary>
+        public static bool ApplyPortraitOrIdle(UnityEngine.UI.RawImage target, string agentId,
+            ref UnityEngine.Video.VideoPlayer player, ref RenderTexture rt, bool preferIdle)
+        {
+            if (target == null) return false;
+            if (preferIdle && IdleVideo.SupportsIdle(agentId) && IdleVideo.TryPlay(target, agentId, ref player, ref rt))
+                return true;
+            IdleVideo.Stop(ref player, ref rt);
+            if (ApplyBust(target, agentId)) return true;
+            var poster = LoadIdlePoster(agentId);
+            return ApplyTexture(target, poster);
+        }
+
         static Sprite ToSprite(string key, Texture2D tex)
         {
             if (tex == null || string.IsNullOrEmpty(key)) return null;

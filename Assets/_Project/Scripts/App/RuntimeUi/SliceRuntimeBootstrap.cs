@@ -223,18 +223,21 @@ namespace Heartline.App.RuntimeUi
             var energy = RuntimeUiKit.Label(canvas.transform, "HE", "HE", 24, TextAnchor.MiddleCenter,
                 new Vector2(0.05f, 0.42f), new Vector2(0.55f, 0.48f), Vector2.zero, Vector2.zero);
             room.BindLegacy(dialogue, aff, energy, portrait, bg);
+            RuntimeUiKit.Button(canvas.transform, "CycleAgent", "Cycle guest (Mira / Velvet / Rook)",
+                new Vector2(0.1f, 0.34f), new Vector2(0.9f, 0.40f), Vector2.zero, Vector2.zero,
+                room.CycleRoomAgent, new Color(0.25f, 0.22f, 0.4f));
             RuntimeUiKit.Button(canvas.transform, "Talk", "Talk (−5 HE, +20 XP)",
-                new Vector2(0.1f, 0.32f), new Vector2(0.9f, 0.4f), Vector2.zero, Vector2.zero, room.Talk);
+                new Vector2(0.1f, 0.26f), new Vector2(0.9f, 0.33f), Vector2.zero, Vector2.zero, room.Talk);
             RuntimeUiKit.Button(canvas.transform, "Gift", "Gift (−8 HE, Aff2+)",
-                new Vector2(0.1f, 0.23f), new Vector2(0.9f, 0.31f), Vector2.zero, Vector2.zero, room.Gift);
+                new Vector2(0.1f, 0.19f), new Vector2(0.9f, 0.25f), Vector2.zero, Vector2.zero, room.Gift);
             RuntimeUiKit.Button(canvas.transform, "Date", "Date (−15 HE, Aff3)",
-                new Vector2(0.1f, 0.14f), new Vector2(0.9f, 0.22f), Vector2.zero, Vector2.zero, room.Date);
+                new Vector2(0.1f, 0.12f), new Vector2(0.9f, 0.18f), Vector2.zero, Vector2.zero, room.Date);
             RuntimeUiKit.Button(canvas.transform, "BuyTea", "Buy Tea (−500 LC)",
-                new Vector2(0.1f, 0.06f), new Vector2(0.48f, 0.13f), Vector2.zero, Vector2.zero, room.BuySunwellTea);
+                new Vector2(0.1f, 0.05f), new Vector2(0.48f, 0.11f), Vector2.zero, Vector2.zero, room.BuySunwellTea);
             RuntimeUiKit.Button(canvas.transform, "Sleep", "Sleepover",
-                new Vector2(0.5f, 0.06f), new Vector2(0.72f, 0.13f), Vector2.zero, Vector2.zero, room.Sleepover);
+                new Vector2(0.5f, 0.05f), new Vector2(0.72f, 0.11f), Vector2.zero, Vector2.zero, room.Sleepover);
             RuntimeUiKit.Button(canvas.transform, "Back", "Back",
-                new Vector2(0.74f, 0.06f), new Vector2(0.9f, 0.13f), Vector2.zero, Vector2.zero, room.Back);
+                new Vector2(0.74f, 0.05f), new Vector2(0.9f, 0.11f), Vector2.zero, Vector2.zero, room.Back);
         }
 
         static void BuildTeam(Transform host)

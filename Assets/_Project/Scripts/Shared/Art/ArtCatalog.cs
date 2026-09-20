@@ -16,6 +16,10 @@ namespace Heartline.Shared
         public const string SdFile = "t0_sd";
         public const string FullbodyFile = "t0_fullbody";
 
+        public const string IdleFolder = "Idle";
+        public const int IdleLoopWidth = 720;
+        public const int IdleLoopHeight = 1280;
+
         public const string RoomSuiteEvening = "room_player_suite_evening";
         public const string RoomAgentLoft = "room_agent_loft_default";
         public const string KeyVisual = "kv_heartline_protocol";
@@ -54,6 +58,15 @@ namespace Heartline.Shared
             { "rook_hale", "rook_hale" },
         };
 
+        /// <summary>Short file stem for idle loops: velvet → velvet_idle_loop, rook → rook_idle_loop.</summary>
+        static readonly Dictionary<string, string> IdleLoopStems = new Dictionary<string, string>
+        {
+            { "velvet", "velvet_idle_loop" },
+            { "velvet_noir", "velvet_idle_loop" },
+            { "rook", "rook_idle_loop" },
+            { "rook_hale", "rook_idle_loop" },
+        };
+
         public static bool TryGetFolder(string agentId, out string folder)
         {
             folder = null;
@@ -77,6 +90,30 @@ namespace Heartline.Shared
         {
             if (!TryGetFolder(agentId, out var folder)) return null;
             return $"{CharactersRoot}/{folder}/{FullbodyFile}";
+        }
+
+        /// <summary>
+        /// Relative path including extension for StreamingAssets / disk load,
+        /// e.g. Art/Characters/velvet_noir/Idle/velvet_idle_loop.mp4
+        /// </summary>
+        public static string IdleLoopRelativePath(string agentId)
+        {
+            if (string.IsNullOrEmpty(agentId)) return null;
+            var key = agentId.Trim().ToLowerInvariant();
+            if (!IdleLoopStems.TryGetValue(key, out var stem)) return null;
+            if (!TryGetFolder(key, out var folder)) return null;
+            return $"{CharactersRoot}/{folder}/{IdleFolder}/{stem}.mp4";
+        }
+
+        public static string IdlePosterResourcePath(string agentId)
+        {
+            if (string.IsNullOrEmpty(agentId)) return null;
+            var key = agentId.Trim().ToLowerInvariant();
+            if (!IdleLoopStems.TryGetValue(key, out var stem)) return null;
+            if (!TryGetFolder(key, out var folder)) return null;
+            // poster file is velvet_idle_poster (stem without _loop)
+            var poster = stem.Replace("_idle_loop", "_idle_poster");
+            return $"{CharactersRoot}/{folder}/{IdleFolder}/{poster}";
         }
 
         public static string RoomResourcePath(string roomIdWithoutExt) =>
