@@ -3,6 +3,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Video;
 using TMPro;
 using Heartline.Save;
 using Heartline.Shared;
@@ -17,6 +18,9 @@ namespace Heartline.Meta
         [SerializeField] Text statusTextLegacy;
         [SerializeField] RawImage portraitImage;
         int _index;
+        VideoPlayer _idlePlayer;
+        RenderTexture _idleRt;
+        string _portraitAgentId;
 
         public void BindLegacy(Text status, RawImage portrait = null)
         {
@@ -30,6 +34,12 @@ namespace Heartline.Meta
             _index = 0;
             Refresh();
             AnalyticsSink.Emit("codex_open");
+        }
+
+        void OnDisable()
+        {
+            IdleVideo.Dispose(ref _idlePlayer, ref _idleRt);
+            _portraitAgentId = null;
         }
 
         List<AgentDefinition> Agents()
@@ -60,7 +70,7 @@ namespace Heartline.Meta
                            ?? new List<string>();
             var sb = new StringBuilder();
             sb.AppendLine($"Agent Codex · {VisibleAgents().Count} shown · secrets stay hidden until unlocked");
-            sb.AppendLine("Playable slice: Mira / Ivy / Juniper / Wren · rest = locked teasers");
+            sb.AppendLine("Playable slice: Mira / Ivy / juniper / Wren · rest = locked teasers");
             sb.AppendLine();
             if (agents.Count == 0)
             {
@@ -94,8 +104,18 @@ namespace Heartline.Meta
                 sb.AppendLine($"  {(u ? "★" : "·")} {x.displayName} ({x.rarity}/{x.role})");
             }
             HudText.Set(statusText, statusTextLegacy, sb.ToString());
-            if (portraitImage != null && agents.Count > 0)
-                ArtLoader.ApplyBust(portraitImage, agents[_index].id);
+            ApplyPortrait(a.id, own);
+        }
+
+        void ApplyPortrait(string agentId, bool unlocked)
+        {
+            if (portraitImage == null) return;
+            // Idle loops only when unlocked Velvet/Rook; others (and locked) stay still bust.
+            bool preferIdle = unlocked && IdleVideo.SupportsIdle(agentId);
+            if (_portraitAgentId == agentId && preferIdle && _idlePlayer != null && _idlePlayer.isPlaying)
+                return;
+            _portraitAgentId = agentId;
+            ArtLoader.ApplyPortraitOrIdle(portraitImage, agentId, ref _idlePlayer, ref _idleRt, preferIdle);
         }
 
         public void Next()

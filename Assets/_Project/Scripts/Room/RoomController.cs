@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Video;
 using TMPro;
 using Heartline.Save;
 using Heartline.Shared;
@@ -19,6 +21,11 @@ namespace Heartline.Room
         [SerializeField] RawImage portraitImage;
         [SerializeField] RawImage backgroundImage;
 
+        /// <summary>Portrait agent: mira by default; can cycle to unlocked velvet/rook for idle preview.</summary>
+        string _roomAgentId = "mira";
+        VideoPlayer _idlePlayer;
+        RenderTexture _idleRt;
+
         public void BindLegacy(Text dialogue, Text aff, Text energy, RawImage portrait = null, RawImage background = null)
         {
             dialogueTextLegacy = dialogue;
@@ -31,11 +38,47 @@ namespace Heartline.Room
 
         void OnEnable()
         {
-            AnalyticsSink.Emit("room_enter", "agent_id=mira");
+            _roomAgentId = "mira";
+            AnalyticsSink.Emit("room_enter", $"agent_id={_roomAgentId}");
             ApplyArt();
             Refresh();
             SetDialogue("Mira: Door's unlocked. That's rare. Come in. (SFW Aff 1–3 · adults 18+)");
             ClaimMorningIfAny();
+        }
+
+        void OnDisable()
+        {
+            IdleVideo.Dispose(ref _idlePlayer, ref _idleRt);
+        }
+
+        List<string> RoomPortraitAgents()
+        {
+            var list = new List<string> { "mira" };
+            var unlocked = SaveService.Instance.Data.unlockedAgents;
+            if (unlocked == null) return list;
+            if (unlocked.Contains("velvet")) list.Add("velvet");
+            if (unlocked.Contains("rook")) list.Add("rook");
+            return list;
+        }
+
+        public void CycleRoomAgent()
+        {
+            var agents = RoomPortraitAgents();
+            int idx = agents.IndexOf(_roomAgentId);
+            if (idx < 0) idx = 0;
+            idx = (idx + 1) % agents.Count;
+            _roomAgentId = agents[idx];
+            ApplyArt();
+            Refresh();
+            if (_roomAgentId == "mira")
+                SetDialogue("Mira: Back to my room. Talk / Gift / Date still run on my Aff track.");
+            else if (_roomAgentId == "velvet")
+                SetDialogue("Velvet: Soft lighting. Slice room actions stay on Mira — this is idle preview.");
+            else if (_roomAgentId == "rook")
+                SetDialogue("Rook: …Don't stare. Idle loop only — Aff still Mira's.");
+            else
+                SetDialogue($"Room portrait: {_roomAgentId}");
+            AnalyticsSink.Emit("room_agent_cycle", $"agent_id={_roomAgentId}");
         }
 
         void ApplyArt()
@@ -45,8 +88,9 @@ namespace Heartline.Room
                 if (!ArtLoader.ApplyRoomBg(backgroundImage, ArtCatalog.RoomSuiteEvening))
                     ArtLoader.ApplyRoomBg(backgroundImage, ArtCatalog.RoomAgentLoft);
             }
-            if (portraitImage != null)
-                ArtLoader.ApplyBust(portraitImage, "mira");
+            if (portraitImage == null) return;
+            bool preferIdle = IdleVideo.SupportsIdle(_roomAgentId);
+            ArtLoader.ApplyPortraitOrIdle(portraitImage, _roomAgentId, ref _idlePlayer, ref _idleRt, preferIdle);
         }
 
         void Refresh()
@@ -55,12 +99,18 @@ namespace Heartline.Room
             SaveService.Instance.ApplyRegen();
             d.miraAffRank = Rank(d.miraAffXp);
             string next = d.miraAffRank >= 3 ? "cap" : (d.miraAffRank == 1 ? $"{GameConstants.AffRank2Xp}" : $"{GameConstants.AffRank3Xp}");
-            HudText.Set(affText, affTextLegacy, $"Mira Aff {d.miraAffRank}/{GameConstants.MaxAffRankSlice}  XP {d.miraAffXp} (→{next})");
+            string guest = _roomAgentId == "mira" ? "" : $" · viewing {_roomAgentId}";
+            HudText.Set(affText, affTextLegacy, $"Mira Aff {d.miraAffRank}/{GameConstants.MaxAffRankSlice}  XP {d.miraAffXp} (→{next}){guest}");
             HudText.Set(energyText, energyTextLegacy, $"HE {d.heartEnergy}/{GameConstants.HeartEnergyCap} · LC {d.lumaCoins} · Tea×{d.sunwellTeaCount}");
         }
 
         public void Talk()
         {
+            if (_roomAgentId != "mira")
+            {
+                SetDialogue("Talk / Gift / Date are Mira-only in the slice. Cycle back to Mira.");
+                return;
+            }
             var d = SaveService.Instance.Data;
             if (d.heartEnergy < GameConstants.TalkCostHe)
             {
@@ -96,6 +146,11 @@ namespace Heartline.Room
 
         public void Gift()
         {
+            if (_roomAgentId != "mira")
+            {
+                SetDialogue("Talk / Gift / Date are Mira-only in the slice. Cycle back to Mira.");
+                return;
+            }
             var d = SaveService.Instance.Data;
             if (Rank(d.miraAffXp) < 2)
             {
@@ -129,6 +184,11 @@ namespace Heartline.Room
 
         public void Date()
         {
+            if (_roomAgentId != "mira")
+            {
+                SetDialogue("Talk / Gift / Date are Mira-only in the slice. Cycle back to Mira.");
+                return;
+            }
             var d = SaveService.Instance.Data;
             if (Rank(d.miraAffXp) < 3)
             {
@@ -158,6 +218,11 @@ namespace Heartline.Room
 
         public void Sleepover()
         {
+            if (_roomAgentId != "mira")
+            {
+                SetDialogue("Sleepover is Mira-only in the slice. Cycle back to Mira.");
+                return;
+            }
             PlayerPrefs.SetInt("hp_sleepover_mira", 1);
             SetDialogue("Sleepover set. Next Room visit: morning +30 Aff XP. (SFW)");
             SaveService.Instance.Save();
