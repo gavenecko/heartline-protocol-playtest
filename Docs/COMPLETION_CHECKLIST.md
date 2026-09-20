@@ -33,10 +33,10 @@ Marked from README “What’s implemented vs stubbed” + PRs **#1–#5**.
 
 ### Remaining (slice → art / polish)
 
-- [ ] **T0 art drops** for Mira / Ivy / Juniper / Wren (bust + fullbody + SD) — see art kickoff
-- [ ] **UI chrome pack** replaces runtime plain uGUI look
-- [ ] **2 Room BGs** wired in Room scene
-- [ ] **Gem match VFX** beyond color placeholders
+- [x] **T0 art drops** for Mira / Ivy / Juniper / Wren (bust + fullbody + SD) — AI drafts wired (PR #7–#10 + runtime)
+- [x] **UI chrome pack** wired into Hub currency / nav / rarity frames / gem chips / buttons (feat/wire-art-ui-slots)
+- [x] **Room BGs** wired — suite default + action maps (Talk/Gift/Date/Sleepover) + extras under Resources
+- [~] **Gem match VFX** — board uses ui_gem_* chips (still no cascade/pop VFX)
 - [ ] Live2D / Spine hub + Room (face / torso / hair) — stub
 - [ ] VO lines (even stub bark set)
 - [ ] Addressables / art import pipeline hooked to slots
@@ -112,4 +112,5 @@ Limited regions / TestFlight / closed Android; live backend light.
 
 ---
 
-*Checklist tracks slice freeze → live. Update when PRs land.*
+*Checklist tracks slice freeze → live. Update when PRs land.*  
+*2026-09-20: UI chrome + Room action BGs + Codex fullbody/gacha reveal wired (feat/wire-art-ui-slots).*

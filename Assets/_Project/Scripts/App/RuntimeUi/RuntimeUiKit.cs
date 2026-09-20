@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using Heartline.Shared;
 
 namespace Heartline.App.RuntimeUi
 {
@@ -56,7 +57,7 @@ namespace Heartline.App.RuntimeUi
         }
 
         public static Button Button(Transform parent, string name, string label, Vector2 anchorMin, Vector2 anchorMax,
-            Vector2 offsetMin, Vector2 offsetMax, UnityAction onClick, Color? bg = null)
+            Vector2 offsetMin, Vector2 offsetMax, UnityAction onClick, Color? bg = null, bool softChrome = false)
         {
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
@@ -73,6 +74,8 @@ namespace Heartline.App.RuntimeUi
             var txt = Label(go.transform, "Label", label, 28, TextAnchor.MiddleCenter,
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             txt.raycastTarget = false;
+            if (softChrome)
+                ArtLoader.SoftApplyButtonPanel(img);
             return btn;
         }
 
@@ -114,6 +117,7 @@ namespace Heartline.App.RuntimeUi
             content = contentGo.transform;
             return scroll;
         }
+
         public static RawImage RawImage(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax,
             Vector2 offsetMin, Vector2 offsetMax, Texture texture = null, Color? color = null)
         {
@@ -128,6 +132,15 @@ namespace Heartline.App.RuntimeUi
             rt.anchorMax = anchorMax;
             rt.offsetMin = offsetMin;
             rt.offsetMax = offsetMax;
+            return raw;
+        }
+
+        /// <summary>Small currency / chrome icon slot (preserves aspect via RawImage texture).</summary>
+        public static RawImage Icon(Transform parent, string name, string chromeFile,
+            Vector2 anchorMin, Vector2 anchorMax)
+        {
+            var raw = RawImage(parent, name, anchorMin, anchorMax, Vector2.zero, Vector2.zero);
+            ArtLoader.ApplyChrome(raw, chromeFile);
             return raw;
         }
     }

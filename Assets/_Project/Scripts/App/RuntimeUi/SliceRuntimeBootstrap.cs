@@ -135,14 +135,27 @@ namespace Heartline.App.RuntimeUi
             ArtLoader.ApplyTexture(kv, ArtLoader.LoadKeyVisual());
             var featured = RuntimeUiKit.RawImage(canvas.transform, "FeaturedBust",
                 new Vector2(0.62f, 0.48f), new Vector2(0.95f, 0.72f), Vector2.zero, Vector2.zero);
-            var sta = RuntimeUiKit.Label(canvas.transform, "STA", "STA", 26, TextAnchor.MiddleLeft,
-                new Vector2(0.05f, 0.9f), new Vector2(0.5f, 0.97f), Vector2.zero, Vector2.zero);
-            var he = RuntimeUiKit.Label(canvas.transform, "HE", "HE", 26, TextAnchor.MiddleLeft,
-                new Vector2(0.5f, 0.9f), new Vector2(0.95f, 0.97f), Vector2.zero, Vector2.zero);
-            var coins = RuntimeUiKit.Label(canvas.transform, "LC", "LC", 26, TextAnchor.MiddleLeft,
-                new Vector2(0.05f, 0.84f), new Vector2(0.5f, 0.9f), Vector2.zero, Vector2.zero);
-            var crystals = RuntimeUiKit.Label(canvas.transform, "PC", "PC", 26, TextAnchor.MiddleLeft,
-                new Vector2(0.5f, 0.84f), new Vector2(0.95f, 0.9f), Vector2.zero, Vector2.zero);
+            // Currency strip icons (STA / HE / LC / PC / Ticket / Marks)
+            RuntimeUiKit.Icon(canvas.transform, "IconSTA", ArtCatalog.CurrencySta,
+                new Vector2(0.02f, 0.905f), new Vector2(0.08f, 0.97f));
+            var sta = RuntimeUiKit.Label(canvas.transform, "STA", "STA", 24, TextAnchor.MiddleLeft,
+                new Vector2(0.08f, 0.905f), new Vector2(0.48f, 0.97f), Vector2.zero, Vector2.zero);
+            RuntimeUiKit.Icon(canvas.transform, "IconHE", ArtCatalog.CurrencyHe,
+                new Vector2(0.50f, 0.905f), new Vector2(0.56f, 0.97f));
+            var he = RuntimeUiKit.Label(canvas.transform, "HE", "HE", 24, TextAnchor.MiddleLeft,
+                new Vector2(0.56f, 0.905f), new Vector2(0.98f, 0.97f), Vector2.zero, Vector2.zero);
+            RuntimeUiKit.Icon(canvas.transform, "IconLC", ArtCatalog.CurrencyLc,
+                new Vector2(0.02f, 0.845f), new Vector2(0.08f, 0.905f));
+            var coins = RuntimeUiKit.Label(canvas.transform, "LC", "LC", 24, TextAnchor.MiddleLeft,
+                new Vector2(0.08f, 0.845f), new Vector2(0.36f, 0.905f), Vector2.zero, Vector2.zero);
+            RuntimeUiKit.Icon(canvas.transform, "IconPC", ArtCatalog.CurrencyPc,
+                new Vector2(0.36f, 0.845f), new Vector2(0.42f, 0.905f));
+            RuntimeUiKit.Icon(canvas.transform, "IconTix", ArtCatalog.CurrencyTicket,
+                new Vector2(0.58f, 0.845f), new Vector2(0.64f, 0.905f));
+            RuntimeUiKit.Icon(canvas.transform, "IconMarks", ArtCatalog.CurrencyMarks,
+                new Vector2(0.78f, 0.845f), new Vector2(0.84f, 0.905f));
+            var crystals = RuntimeUiKit.Label(canvas.transform, "PC", "PC", 22, TextAnchor.MiddleLeft,
+                new Vector2(0.42f, 0.845f), new Vector2(0.98f, 0.905f), Vector2.zero, Vector2.zero);
             var status = RuntimeUiKit.Label(canvas.transform, "Status", "Hub", 28, TextAnchor.MiddleCenter,
                 new Vector2(0.05f, 0.74f), new Vector2(0.55f, 0.84f), Vector2.zero, Vector2.zero,
                 new Color(0f, 0.83f, 1f));
@@ -153,7 +166,8 @@ namespace Heartline.App.RuntimeUi
             void Nav(string label, UnityEngine.Events.UnityAction action)
             {
                 RuntimeUiKit.Button(canvas.transform, label, label,
-                    new Vector2(0.12f, y - 0.045f), new Vector2(0.88f, y), Vector2.zero, Vector2.zero, action);
+                    new Vector2(0.12f, y - 0.045f), new Vector2(0.88f, y), Vector2.zero, Vector2.zero,
+                    action, softChrome: true);
                 y -= 0.052f;
             }
             Nav("Stages", hub.OpenStages);
@@ -225,17 +239,22 @@ namespace Heartline.App.RuntimeUi
             room.BindLegacy(dialogue, aff, energy, portrait, bg);
             RuntimeUiKit.Button(canvas.transform, "CycleAgent", "Cycle guest (Mira / Velvet / Rook)",
                 new Vector2(0.1f, 0.34f), new Vector2(0.9f, 0.40f), Vector2.zero, Vector2.zero,
-                room.CycleRoomAgent, new Color(0.25f, 0.22f, 0.4f));
+                room.CycleRoomAgent, new Color(0.25f, 0.22f, 0.4f), softChrome: true);
             RuntimeUiKit.Button(canvas.transform, "Talk", "Talk (−5 HE, +20 XP)",
-                new Vector2(0.1f, 0.26f), new Vector2(0.9f, 0.33f), Vector2.zero, Vector2.zero, room.Talk);
+                new Vector2(0.1f, 0.26f), new Vector2(0.9f, 0.33f), Vector2.zero, Vector2.zero,
+                room.Talk, softChrome: true);
             RuntimeUiKit.Button(canvas.transform, "Gift", "Gift (−8 HE, Aff2+)",
-                new Vector2(0.1f, 0.19f), new Vector2(0.9f, 0.25f), Vector2.zero, Vector2.zero, room.Gift);
+                new Vector2(0.1f, 0.19f), new Vector2(0.9f, 0.25f), Vector2.zero, Vector2.zero,
+                room.Gift, softChrome: true);
             RuntimeUiKit.Button(canvas.transform, "Date", "Date (−15 HE, Aff3)",
-                new Vector2(0.1f, 0.12f), new Vector2(0.9f, 0.18f), Vector2.zero, Vector2.zero, room.Date);
+                new Vector2(0.1f, 0.12f), new Vector2(0.9f, 0.18f), Vector2.zero, Vector2.zero,
+                room.Date, softChrome: true);
             RuntimeUiKit.Button(canvas.transform, "BuyTea", "Buy Tea (−500 LC)",
-                new Vector2(0.1f, 0.05f), new Vector2(0.48f, 0.11f), Vector2.zero, Vector2.zero, room.BuySunwellTea);
+                new Vector2(0.1f, 0.05f), new Vector2(0.48f, 0.11f), Vector2.zero, Vector2.zero,
+                room.BuySunwellTea, softChrome: true);
             RuntimeUiKit.Button(canvas.transform, "Sleep", "Sleepover",
-                new Vector2(0.5f, 0.05f), new Vector2(0.72f, 0.11f), Vector2.zero, Vector2.zero, room.Sleepover);
+                new Vector2(0.5f, 0.05f), new Vector2(0.72f, 0.11f), Vector2.zero, Vector2.zero,
+                room.Sleepover, softChrome: true);
             RuntimeUiKit.Button(canvas.transform, "Back", "Back",
                 new Vector2(0.74f, 0.05f), new Vector2(0.9f, 0.11f), Vector2.zero, Vector2.zero, room.Back);
         }
@@ -244,11 +263,13 @@ namespace Heartline.App.RuntimeUi
         {
             var canvas = RuntimeUiKit.CreateCanvas("TeamCanvas", host);
             var team = host.gameObject.AddComponent<TeamController>();
+            var frame = RuntimeUiKit.RawImage(canvas.transform, "RarityFrame",
+                new Vector2(0.60f, 0.52f), new Vector2(0.98f, 0.94f), Vector2.zero, Vector2.zero);
             var portrait = RuntimeUiKit.RawImage(canvas.transform, "SelectedBust",
-                new Vector2(0.62f, 0.55f), new Vector2(0.96f, 0.92f), Vector2.zero, Vector2.zero);
+                new Vector2(0.64f, 0.56f), new Vector2(0.94f, 0.90f), Vector2.zero, Vector2.zero);
             var squad = RuntimeUiKit.Label(canvas.transform, "Squad", "Squad", 26, TextAnchor.UpperLeft,
-                new Vector2(0.05f, 0.42f), new Vector2(0.62f, 0.92f), Vector2.zero, Vector2.zero);
-            team.BindLegacy(squad, portrait);
+                new Vector2(0.05f, 0.42f), new Vector2(0.60f, 0.92f), Vector2.zero, Vector2.zero);
+            team.BindLegacy(squad, portrait, frame);
 
             float y = 0.36f;
             void SlotBtn(string label, UnityEngine.Events.UnityAction action)
@@ -285,16 +306,25 @@ namespace Heartline.App.RuntimeUi
             var canvas = RuntimeUiKit.CreateCanvas("GachaCanvas", host);
             var gacha = host.gameObject.AddComponent<GachaController>();
             var rates = RuntimeUiKit.Label(canvas.transform, "Rates", "Rates", 22, TextAnchor.UpperLeft,
-                new Vector2(0.08f, 0.58f), new Vector2(0.92f, 0.96f), Vector2.zero, Vector2.zero);
+                new Vector2(0.08f, 0.70f), new Vector2(0.58f, 0.96f), Vector2.zero, Vector2.zero);
+            var revealFrame = RuntimeUiKit.RawImage(canvas.transform, "RevealFrame",
+                new Vector2(0.58f, 0.58f), new Vector2(0.96f, 0.96f), Vector2.zero, Vector2.zero);
+            var revealFull = RuntimeUiKit.RawImage(canvas.transform, "RevealFullbody",
+                new Vector2(0.60f, 0.60f), new Vector2(0.94f, 0.94f), Vector2.zero, Vector2.zero);
+            var revealBust = RuntimeUiKit.RawImage(canvas.transform, "RevealBust",
+                new Vector2(0.62f, 0.64f), new Vector2(0.92f, 0.90f), Vector2.zero, Vector2.zero);
             var result = RuntimeUiKit.Label(canvas.transform, "Result", "", 20, TextAnchor.UpperLeft,
-                new Vector2(0.08f, 0.32f), new Vector2(0.92f, 0.57f), Vector2.zero, Vector2.zero);
-            gacha.BindLegacy(rates, result);
+                new Vector2(0.08f, 0.32f), new Vector2(0.92f, 0.68f), Vector2.zero, Vector2.zero);
+            gacha.BindLegacy(rates, result, revealBust, revealFrame, revealFull);
             RuntimeUiKit.Button(canvas.transform, "Free", "Free 10-pull (once)",
-                new Vector2(0.1f, 0.22f), new Vector2(0.9f, 0.30f), Vector2.zero, Vector2.zero, gacha.FreeTenPull);
+                new Vector2(0.1f, 0.22f), new Vector2(0.9f, 0.30f), Vector2.zero, Vector2.zero,
+                gacha.FreeTenPull, softChrome: true);
             RuntimeUiKit.Button(canvas.transform, "Tix", "10-pull · Echo Tickets",
-                new Vector2(0.1f, 0.14f), new Vector2(0.9f, 0.21f), Vector2.zero, Vector2.zero, gacha.PullWithTickets);
+                new Vector2(0.1f, 0.14f), new Vector2(0.9f, 0.21f), Vector2.zero, Vector2.zero,
+                gacha.PullWithTickets, softChrome: true);
             RuntimeUiKit.Button(canvas.transform, "Cry", "10-pull · 1600 Crystals",
-                new Vector2(0.1f, 0.06f), new Vector2(0.9f, 0.13f), Vector2.zero, Vector2.zero, gacha.PullWithCrystals);
+                new Vector2(0.1f, 0.06f), new Vector2(0.9f, 0.13f), Vector2.zero, Vector2.zero,
+                gacha.PullWithCrystals, softChrome: true);
             RuntimeUiKit.Button(canvas.transform, "Back", "Not Now / Back",
                 new Vector2(0.2f, 0.01f), new Vector2(0.8f, 0.05f), Vector2.zero, Vector2.zero, gacha.NotNow);
         }
@@ -377,17 +407,24 @@ namespace Heartline.App.RuntimeUi
         {
             var canvas = RuntimeUiKit.CreateCanvas("CodexCanvas", host);
             var ctrl = host.gameObject.AddComponent<CodexController>();
+            var frame = RuntimeUiKit.RawImage(canvas.transform, "CodexFrame",
+                new Vector2(0.52f, 0.40f), new Vector2(0.98f, 0.98f), Vector2.zero, Vector2.zero);
+            var fullbody = RuntimeUiKit.RawImage(canvas.transform, "CodexFullbody",
+                new Vector2(0.55f, 0.42f), new Vector2(0.95f, 0.96f), Vector2.zero, Vector2.zero);
             var portrait = RuntimeUiKit.RawImage(canvas.transform, "CodexBust",
-                new Vector2(0.55f, 0.45f), new Vector2(0.96f, 0.96f), Vector2.zero, Vector2.zero);
+                new Vector2(0.56f, 0.48f), new Vector2(0.94f, 0.92f), Vector2.zero, Vector2.zero);
             var status = RuntimeUiKit.Label(canvas.transform, "Status", "Codex", 20, TextAnchor.UpperLeft,
-                new Vector2(0.04f, 0.22f), new Vector2(0.55f, 0.96f), Vector2.zero, Vector2.zero);
-            ctrl.BindLegacy(status, portrait);
+                new Vector2(0.04f, 0.22f), new Vector2(0.52f, 0.96f), Vector2.zero, Vector2.zero);
+            ctrl.BindLegacy(status, portrait, frame, fullbody);
             RuntimeUiKit.Button(canvas.transform, "Prev", "◀ Prev",
-                new Vector2(0.05f, 0.10f), new Vector2(0.32f, 0.18f), Vector2.zero, Vector2.zero, ctrl.Prev);
+                new Vector2(0.05f, 0.10f), new Vector2(0.28f, 0.18f), Vector2.zero, Vector2.zero, ctrl.Prev);
             RuntimeUiKit.Button(canvas.transform, "Next", "Next ▶",
-                new Vector2(0.35f, 0.10f), new Vector2(0.62f, 0.18f), Vector2.zero, Vector2.zero, ctrl.Next);
+                new Vector2(0.30f, 0.10f), new Vector2(0.53f, 0.18f), Vector2.zero, Vector2.zero, ctrl.Next);
+            RuntimeUiKit.Button(canvas.transform, "Full", "Toggle Fullbody",
+                new Vector2(0.55f, 0.10f), new Vector2(0.78f, 0.18f), Vector2.zero, Vector2.zero,
+                ctrl.ToggleFullbody, softChrome: true);
             RuntimeUiKit.Button(canvas.transform, "Back", "Back",
-                new Vector2(0.65f, 0.10f), new Vector2(0.95f, 0.18f), Vector2.zero, Vector2.zero, ctrl.Back);
+                new Vector2(0.80f, 0.10f), new Vector2(0.95f, 0.18f), Vector2.zero, Vector2.zero, ctrl.Back);
         }
 
         static void BuildBattle(Transform host)
@@ -492,13 +529,48 @@ namespace Heartline.App.RuntimeUi
             for (int x = 0; x < BoardSimulator.Width; x++, i++)
             {
                 if (i >= _grid.childCount) return;
-                var txt = _grid.GetChild(i).GetComponentInChildren<Text>();
-                if (txt == null) continue;
+                var cell = _grid.GetChild(i);
+                var img = cell.GetComponent<Image>();
+                var txt = cell.GetComponentInChildren<Text>();
                 var c = _battle.Board.Get(x, y);
-                txt.text = GemLetter(c);
-                txt.color = GemTint(c);
+                var shared = ToSharedGem(c);
+                bool art = false;
+                if (img != null)
+                {
+                    if (shared != Heartline.Shared.GemColor.Empty)
+                        art = ArtLoader.ApplyGem(img, shared);
+                    if (!art)
+                    {
+                        img.sprite = null;
+                        img.color = GemTint(c);
+                    }
+                }
+                if (txt != null)
+                {
+                    if (art)
+                    {
+                        txt.text = "";
+                        txt.color = Color.clear;
+                    }
+                    else
+                    {
+                        txt.text = GemLetter(c);
+                        txt.color = GemTint(c);
+                    }
+                }
             }
         }
+
+        static Heartline.Shared.GemColor ToSharedGem(GemColor c) => c switch
+        {
+            GemColor.Crimson => Heartline.Shared.GemColor.Crimson,
+            GemColor.Azure => Heartline.Shared.GemColor.Azure,
+            GemColor.Verdant => Heartline.Shared.GemColor.Verdant,
+            GemColor.Amber => Heartline.Shared.GemColor.Amber,
+            GemColor.Violet => Heartline.Shared.GemColor.Violet,
+            GemColor.Prism => Heartline.Shared.GemColor.Prism,
+            _ => Heartline.Shared.GemColor.Empty
+        };
 
         static string GemLetter(GemColor c) => c switch
         {
