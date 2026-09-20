@@ -1,25 +1,24 @@
 # Idle loops (pseudo-Live2D)
 
-Still-image gen cannot hold identity across true keyframes, so ship **mechanical breath/sway** loops from locked `t0_fullbody.png` assets.
+## Primary: Grok Imagine video (ship these)
 
-## Deliverables
+User-generated image→video idles from locked fullbodies. White BG — use in **framed** Codex/portrait slots (not raw over Room BGs).
 
 | Agent | Folder | Files |
 |-------|--------|-------|
-| Velvet Noir | `Assets/_Project/Art/Characters/velvet_noir/Idle/` | `velvet_idle_loop.webm`, `.gif`, `.mp4`, `velvet_idle_k0–k3.png` |
-| Rook Hale | `Assets/_Project/Art/Characters/rook_hale/Idle/` | `rook_idle_loop.webm`, `.gif`, `.mp4`, `rook_idle_k0–k3.png` |
+| Velvet Noir | `Assets/_Project/Art/Characters/velvet_noir/Idle/` | `velvet_idle_imagine.mp4` (master), `velvet_idle_loop.mp4` / `.webm`, `velvet_idle_poster.png` |
+| Rook Hale | `Assets/_Project/Art/Characters/rook_hale/Idle/` | `rook_idle_imagine.mp4` (master), `rook_idle_loop.mp4` / `.webm`, `rook_idle_poster.png` |
 
-## Technique
+### Specs
+- **720×1280** (9:16), **24 fps**, **~6.0s**, H.264, no audio
+- Seamless loop (Imagine minimum length)
+- White background — fine for framed UI; for Room overlay use green-screen regen or chroma key later
 
-1. Pad fullbody to 720×960 white canvas, enlarge 8%.
-2. 20 frames: sine breath scale (~1.0–1.018) + sway (±8px X, −4px Y).
-3. Ping-pong for seamless loop (~2.7s cycle).
-4. Export WebM (VP9), MP4 (H.264), GIF (12fps palette).
+### Fallback
+`*_idle_loop_mechanical.gif` — earlier sine breath/sway from still fullbodies (identity-locked, subtler).
 
-## AI draft keyframes
+### AI still drafts
+`Idle/ai_draft/` — Imagine still keyframe attempts (identity drift); not used in-game.
 
-`Idle/ai_draft/` holds Imagine attempts. Rook stayed closer; Velvet outfit/hair drifted. Use mechanical loops in-game until Cubism/Spine or video gen is available.
-
-## Unity note
-
-Play with `VideoPlayer` (WebM/MP4) or `Image` + GIF plugin on Room/Codex bust slots. Prefer WebM/MP4 over GIF for size.
+## Unity
+`VideoPlayer` → `velvet_idle_loop.mp4` / `rook_idle_loop.mp4`, loop = true. Prefer MP4 over GIF.
