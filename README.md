@@ -110,27 +110,31 @@ AI draft T0 art from PRs #7–#10 is wired into playable runtime UI (no Addressa
 |--------|----------------|
 | `Assets/_Project/Art/Characters/{folder}/t0_bust.png` | Also copied to `Assets/Resources/Art/Characters/...` |
 | Room BGs `room_player_suite_evening` / `room_agent_loft_default` | `Assets/Resources/Art/Environment/Rooms/` |
-| KV + nav chrome (optional) | `Assets/Resources/Art/Marketing/` · `.../UI/Chrome/` |
+| KV + nav chrome | `Assets/Resources/Art/Marketing/` · `.../UI/Chrome/` |
+| Currency / gem / rarity frame singles | `Assets/Resources/Art/UI/Chrome/ui_currency_*`, `ui_gem_*`, `ui_frame_*` |
+| Buttons/panels sheet | `ui_buttons_panels_sheet` (Resources + `_Project/Art`) |
+| Extra Room BGs | cafe / rain / neon / rooftop / morning / clinic under `Environment/Rooms/` |
 
 **Loader:** `ArtCatalog` + `ArtLoader` (`Assets/_Project/Scripts/Shared/Art/`).
 
 1. `Resources.Load<Texture2D>("Art/...")`
 2. Else `Texture2D.LoadImage` from `StreamingAssets/Art/...`, `Assets/Resources/Art/...`, or Editor `Application.dataPath/_Project/Art/...`
 
-**Agent id → folder:** mira→`mira_solenne`, ivy→`ivy_cross`, juniper→`juniper_tate`, wren→`wren_halcyon`, kade→`kade_virell`, nyra→`nyra_quell`, sable→`sable_rin`, ora→`ora_finch`, luce→`luce_amaranth`, helene→`helene_voss`, hex→`zara_hex_montal`, aveline→`aveline_roux`.
+**Agent id → folder:** mira→`mira_solenne`, ivy→`ivy_cross`, juniper→`juniper_tate`, wren→`wren_halcyon`, kade→`kade_virell`, nyra→`nyra_quell`, sable→`sable_rin`, ora→`ora_finch`, luce→`luce_amaranth`, helene→`helene_voss`, hex→`zara_hex_montal`, aveline→`aveline_roux`, velvet→`velvet_noir`, rook→`rook_hale`.
 
 **Screens showing art:**
 
 | Screen | Art |
 |--------|-----|
 | Title | Key visual |
-| Hub | Featured agent bust (Mira) + KV wash + nav bar |
-| Team | Selected roster bust |
-| Codex | Current agent bust (all 12) |
-| Room | Suite evening BG + Mira bust |
-| Battle | Lane SD/bust portraits (up to 4) |
+| Hub | Featured bust + KV wash + **currency icons** (STA/HE/LC/PC/ticket/marks) + nav bar + soft button chrome |
+| Team | Selected roster bust + **rarity frame** |
+| Codex | Bust / idle (Velvet/Rook) + **rarity frame** + **Toggle Fullbody** (`t0_fullbody`) |
+| Room | Suite default BG; **Talk→suite**, **Gift→cafe**, **Date→neon overlook**, **Sleepover→morning** (+fallbacks) |
+| Battle | Lane SD portraits + **ui_gem_*** chips on board cells |
+| Gacha | Pull **reveal stub** (fullbody preferred, else bust) + rarity frame |
 
-Drop replacement PNGs in-place under `_Project/Art` **and** re-copy into `Resources/Art` (same relative paths) so player builds keep working offline.
+Drop replacement PNGs in-place under `_Project/Art` **and** re-copy into `Resources/Art` (same relative paths) so player builds keep working offline. `ArtLoader` also reads `_Project/Art` directly in Editor, so chrome singles already under Resources do not need StreamingAssets duplicates.
 
 ## Art kickoff
 
@@ -142,6 +146,7 @@ Systems are frozen enough to commission slice art. Start here:
 | [`Docs/ART_COMMISSION_BRIEFS_SLICE.md`](Docs/ART_COMMISSION_BRIEFS_SLICE.md) | One-page briefs: Mira / Ivy / Juniper / Wren + UI chrome + 2 Room BGs + gem VFX |
 | [`Docs/PLACEHOLDER_ART_SLOTS.md`](Docs/PLACEHOLDER_ART_SLOTS.md) | Exact filenames under `Assets/_Project/Art/` (plug-and-play drops) |
 | [`Docs/COMPLETION_CHECKLIST.md`](Docs/COMPLETION_CHECKLIST.md) | Slice done vs remaining → MVP → soft launch → live |
+| [`Docs/UI_ART_WIRING.md`](Docs/UI_ART_WIRING.md) | Chrome / Room BG / fullbody / gem chip wiring notes |
 
 Drop art into `Assets/_Project/Art/Characters/{mira_solenne,ivy_cross,juniper_tate,wren_halcyon}/` etc. Full visual thesis remains in `Docs/heartline-protocol-art-bible.md`.
 

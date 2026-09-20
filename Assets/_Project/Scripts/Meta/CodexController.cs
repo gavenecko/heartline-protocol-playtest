@@ -17,21 +17,27 @@ namespace Heartline.Meta
         [SerializeField] TMP_Text statusText;
         [SerializeField] Text statusTextLegacy;
         [SerializeField] RawImage portraitImage;
+        [SerializeField] RawImage frameImage;
+        [SerializeField] RawImage fullbodyImage;
         int _index;
         VideoPlayer _idlePlayer;
         RenderTexture _idleRt;
         string _portraitAgentId;
+        bool _showFullbody;
 
-        public void BindLegacy(Text status, RawImage portrait = null)
+        public void BindLegacy(Text status, RawImage portrait = null, RawImage frame = null, RawImage fullbody = null)
         {
             statusTextLegacy = status;
             if (portrait != null) portraitImage = portrait;
+            if (frame != null) frameImage = frame;
+            if (fullbody != null) fullbodyImage = fullbody;
             Refresh();
         }
 
         void OnEnable()
         {
             _index = 0;
+            _showFullbody = false;
             Refresh();
             AnalyticsSink.Emit("codex_open");
         }
@@ -70,7 +76,7 @@ namespace Heartline.Meta
                            ?? new List<string>();
             var sb = new StringBuilder();
             sb.AppendLine($"Agent Codex · {VisibleAgents().Count} shown · secrets stay hidden until unlocked");
-            sb.AppendLine("Playable slice: Mira / Ivy / juniper / Wren · rest = locked teasers");
+            sb.AppendLine("Playable slice: Mira / Ivy / Juniper / Wren · rest = locked teasers");
             sb.AppendLine();
             if (agents.Count == 0)
             {
@@ -97,6 +103,10 @@ namespace Heartline.Meta
                     ? "(SECRET — clear Tower floor 10 to recruit)"
                     : "(Teaser — recruit via story / gacha in live build)");
             sb.AppendLine();
+            sb.AppendLine(_showFullbody
+                ? "View: FULLBODY (Toggle Portrait for bust / idle)"
+                : "View: PORTRAIT (Toggle Fullbody when art exists)");
+            sb.AppendLine();
             sb.AppendLine("Roster:");
             foreach (var x in agents)
             {
@@ -104,12 +114,40 @@ namespace Heartline.Meta
                 sb.AppendLine($"  {(u ? "★" : "·")} {x.displayName} ({x.rarity}/{x.role})");
             }
             HudText.Set(statusText, statusTextLegacy, sb.ToString());
-            ApplyPortrait(a.id, own);
+            ApplyPortrait(a, own);
         }
 
-        void ApplyPortrait(string agentId, bool unlocked)
+        void ApplyPortrait(AgentDefinition a, bool unlocked)
         {
+            if (a == null) return;
+            string agentId = a.id;
+            string rarity = a.rarity ?? "N";
+
+            if (frameImage != null)
+                ArtLoader.ApplyRarityFrame(frameImage, rarity);
+
+            if (_showFullbody)
+            {
+                IdleVideo.Stop(ref _idlePlayer, ref _idleRt);
+                _portraitAgentId = agentId + "#full";
+                if (fullbodyImage != null)
+                {
+                    if (portraitImage != null) portraitImage.enabled = false;
+                    fullbodyImage.enabled = true;
+                    ArtLoader.ApplyFullbody(fullbodyImage, agentId);
+                }
+                else if (portraitImage != null)
+                {
+                    ArtLoader.ApplyFullbody(portraitImage, agentId);
+                }
+                return;
+            }
+
+            if (fullbodyImage != null)
+                fullbodyImage.enabled = false;
+
             if (portraitImage == null) return;
+            portraitImage.enabled = true;
             // Idle loops only when unlocked Velvet/Rook; others (and locked) stay still bust.
             bool preferIdle = unlocked && IdleVideo.SupportsIdle(agentId);
             if (_portraitAgentId == agentId && preferIdle && _idlePlayer != null && _idlePlayer.isPlaying)
@@ -118,11 +156,18 @@ namespace Heartline.Meta
             ArtLoader.ApplyPortraitOrIdle(portraitImage, agentId, ref _idlePlayer, ref _idleRt, preferIdle);
         }
 
+        public void ToggleFullbody()
+        {
+            _showFullbody = !_showFullbody;
+            Refresh();
+        }
+
         public void Next()
         {
             var n = VisibleAgents().Count;
             if (n == 0) return;
             _index = (_index + 1) % n;
+            _showFullbody = false;
             Refresh();
         }
 
@@ -131,6 +176,7 @@ namespace Heartline.Meta
             var n = VisibleAgents().Count;
             if (n == 0) return;
             _index = (_index - 1 + n) % n;
+            _showFullbody = false;
             Refresh();
         }
 

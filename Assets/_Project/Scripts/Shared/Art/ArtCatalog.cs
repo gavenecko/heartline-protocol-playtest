@@ -4,6 +4,7 @@ namespace Heartline.Shared
 {
     /// <summary>
     /// Maps runtime agent ids (agents.json) → art folder names under Art/Characters/.
+    /// Also names chrome / room / marketing paths under Art/.
     /// </summary>
     public static class ArtCatalog
     {
@@ -20,10 +21,42 @@ namespace Heartline.Shared
         public const int IdleLoopWidth = 720;
         public const int IdleLoopHeight = 1280;
 
+        // Room BGs
         public const string RoomSuiteEvening = "room_player_suite_evening";
         public const string RoomAgentLoft = "room_agent_loft_default";
+        public const string RoomCafe = "room_cafe_shift";
+        public const string RoomRainLounge = "room_rain_window_lounge";
+        public const string RoomNeonOverlook = "room_neon_date_overlook";
+        public const string RoomRooftop = "room_rooftop_garden_night";
+        public const string RoomSleepoverMorning = "room_sleepover_morning";
+        public const string RoomClinic = "room_clinic_guest";
+
         public const string KeyVisual = "kv_heartline_protocol";
         public const string NavBottom = "ui_nav_bottom";
+        public const string ButtonsPanelsSheet = "ui_buttons_panels_sheet";
+
+        // Currency singles
+        public const string CurrencySta = "ui_currency_sta";
+        public const string CurrencyHe = "ui_currency_he";
+        public const string CurrencyLc = "ui_currency_lc";
+        public const string CurrencyPc = "ui_currency_pc";
+        public const string CurrencyTicket = "ui_currency_ticket";
+        public const string CurrencyMarks = "ui_currency_marks";
+
+        // Gem chips
+        public const string GemCrimson = "ui_gem_crimson";
+        public const string GemAzure = "ui_gem_azure";
+        public const string GemVerdant = "ui_gem_verdant";
+        public const string GemAmber = "ui_gem_amber";
+        public const string GemViolet = "ui_gem_violet";
+        public const string GemPrism = "ui_gem_prism";
+
+        // Rarity frames
+        public const string FrameN = "ui_frame_n";
+        public const string FrameR = "ui_frame_r";
+        public const string FrameSr = "ui_frame_sr";
+        public const string FrameSsr = "ui_frame_ssr";
+        public const string FrameUr = "ui_frame_ur";
 
         static readonly Dictionary<string, string> AgentFolders = new Dictionary<string, string>
         {
@@ -124,5 +157,78 @@ namespace Heartline.Shared
 
         public static string ChromeResourcePath(string fileWithoutExt) =>
             $"{ChromeRoot}/{fileWithoutExt}";
+
+        public static string CurrencyResourcePath(string currencyKey) =>
+            ChromeResourcePath(currencyKey);
+
+        public static string GemResourcePath(string gemKey) =>
+            ChromeResourcePath(gemKey);
+
+        /// <summary>Map rarity string (N/R/SR/SSR/UR) → frame chrome file stem.</summary>
+        public static string FrameFileForRarity(string rarity)
+        {
+            if (string.IsNullOrEmpty(rarity)) return FrameN;
+            switch (rarity.Trim().ToUpperInvariant())
+            {
+                case "UR": return FrameUr;
+                case "SSR": return FrameSsr;
+                case "SR": return FrameSr;
+                case "R": return FrameR;
+                default: return FrameN;
+            }
+        }
+
+        public static string FrameResourcePath(string rarity) =>
+            ChromeResourcePath(FrameFileForRarity(rarity));
+
+        /// <summary>Map Shared.GemColor → chrome gem file stem.</summary>
+        public static string GemFileForColor(GemColor color) => color switch
+        {
+            GemColor.Crimson => GemCrimson,
+            GemColor.Azure => GemAzure,
+            GemColor.Verdant => GemVerdant,
+            GemColor.Amber => GemAmber,
+            GemColor.Violet => GemViolet,
+            GemColor.Prism => GemPrism,
+            _ => null
+        };
+
+        /// <summary>
+        /// Room BG for Room actions. Talk→suite (fallback loft), Gift→cafe (fallback rain),
+        /// Date→neon overlook (fallback rooftop), Sleepover→morning.
+        /// </summary>
+        public static string RoomForAction(string action)
+        {
+            if (string.IsNullOrEmpty(action)) return RoomSuiteEvening;
+            switch (action.Trim().ToLowerInvariant())
+            {
+                case "talk": return RoomSuiteEvening;
+                case "gift": return RoomCafe;
+                case "date": return RoomNeonOverlook;
+                case "sleepover":
+                case "sleep":
+                case "morning": return RoomSleepoverMorning;
+                case "loft": return RoomAgentLoft;
+                case "rain": return RoomRainLounge;
+                case "rooftop": return RoomRooftop;
+                case "clinic": return RoomClinic;
+                default: return RoomSuiteEvening;
+            }
+        }
+
+        public static string RoomFallbackForAction(string action)
+        {
+            if (string.IsNullOrEmpty(action)) return RoomAgentLoft;
+            switch (action.Trim().ToLowerInvariant())
+            {
+                case "talk": return RoomAgentLoft;
+                case "gift": return RoomRainLounge;
+                case "date": return RoomRooftop;
+                case "sleepover":
+                case "sleep":
+                case "morning": return RoomSuiteEvening;
+                default: return RoomAgentLoft;
+            }
+        }
     }
 }

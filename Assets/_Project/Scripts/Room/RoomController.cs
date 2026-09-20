@@ -83,14 +83,23 @@ namespace Heartline.Room
 
         void ApplyArt()
         {
-            if (backgroundImage != null)
-            {
-                if (!ArtLoader.ApplyRoomBg(backgroundImage, ArtCatalog.RoomSuiteEvening))
-                    ArtLoader.ApplyRoomBg(backgroundImage, ArtCatalog.RoomAgentLoft);
-            }
+            ApplyDefaultBg();
             if (portraitImage == null) return;
             bool preferIdle = IdleVideo.SupportsIdle(_roomAgentId);
             ArtLoader.ApplyPortraitOrIdle(portraitImage, _roomAgentId, ref _idlePlayer, ref _idleRt, preferIdle);
+        }
+
+        void ApplyDefaultBg()
+        {
+            if (backgroundImage == null) return;
+            if (!ArtLoader.ApplyRoomBg(backgroundImage, ArtCatalog.RoomSuiteEvening))
+                ArtLoader.ApplyRoomBg(backgroundImage, ArtCatalog.RoomAgentLoft);
+        }
+
+        void ApplyActionBg(string action)
+        {
+            if (backgroundImage == null) return;
+            ArtLoader.ApplyRoomBgForAction(backgroundImage, action);
         }
 
         void Refresh()
@@ -132,6 +141,7 @@ namespace Heartline.Room
             CapAffXp(d);
             int after = Rank(d.miraAffXp);
             d.miraAffRank = after;
+            ApplyActionBg("talk");
             SetDialogue(after == 1
                 ? "Mira: Sync rates spike when you listen. Annoying scientific fact."
                 : after == 2
@@ -173,6 +183,7 @@ namespace Heartline.Room
             CapAffXp(d);
             int after = Rank(d.miraAffXp);
             d.miraAffRank = after;
+            ApplyActionBg("gift");
             SetDialogue(preferred
                 ? "Mira: Sunwell Tea. You listened. Dangerous habit."
                 : "Mira: Thanks. Not Corp pens — good.");
@@ -210,6 +221,7 @@ namespace Heartline.Room
             CapAffXp(d);
             d.miraAffRank = Rank(d.miraAffXp);
             d.datedMiraToday = true;
+            ApplyActionBg("date");
             SetDialogue("Mira: Pier lights. No badges. Rank Three — Close. (SFW outing)");
             AnalyticsSink.Emit("room_action", $"action=date;xp={GameConstants.DateAffXp};rank={d.miraAffRank}");
             SaveService.Instance.Save();
@@ -224,6 +236,7 @@ namespace Heartline.Room
                 return;
             }
             PlayerPrefs.SetInt("hp_sleepover_mira", 1);
+            ApplyActionBg("sleepover");
             SetDialogue("Sleepover set. Next Room visit: morning +30 Aff XP. (SFW)");
             SaveService.Instance.Save();
         }
@@ -237,6 +250,7 @@ namespace Heartline.Room
             CapAffXp(d);
             d.miraAffRank = Rank(d.miraAffXp);
             SaveService.Instance.Save();
+            ApplyActionBg("morning");
             SetDialogue("Morning light. Mira left tea. +30 Aff XP.");
             Refresh();
         }

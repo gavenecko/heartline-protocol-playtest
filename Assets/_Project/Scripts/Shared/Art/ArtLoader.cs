@@ -8,7 +8,7 @@ namespace Heartline.Shared
     /// <summary>
     /// Offline art loader — no Addressables.
     /// Order: Resources.Load → StreamingAssets/Art LoadImage → Application.dataPath/_Project/Art LoadImage.
-    /// Busts are also mirrored under Assets/Resources/Art for player builds.
+    /// Busts / chrome are also mirrored under Assets/Resources/Art for player builds.
     /// </summary>
     public static class ArtLoader
     {
@@ -36,11 +36,38 @@ namespace Heartline.Shared
         public static Texture2D LoadNavBottom() =>
             LoadTexture(ArtCatalog.ChromeResourcePath(ArtCatalog.NavBottom));
 
+        public static Texture2D LoadChrome(string fileWithoutExt) =>
+            LoadTexture(ArtCatalog.ChromeResourcePath(fileWithoutExt));
+
+        public static Texture2D LoadCurrency(string currencyFile) =>
+            LoadChrome(currencyFile);
+
+        public static Texture2D LoadGem(GemColor color)
+        {
+            var file = ArtCatalog.GemFileForColor(color);
+            return string.IsNullOrEmpty(file) ? null : LoadChrome(file);
+        }
+
+        public static Texture2D LoadFrame(string rarity) =>
+            LoadTexture(ArtCatalog.FrameResourcePath(rarity));
+
         public static Sprite BustSprite(string agentId) =>
             ToSprite(ArtCatalog.BustResourcePath(agentId), LoadBust(agentId));
 
         public static Sprite SdSprite(string agentId) =>
             ToSprite(ArtCatalog.SdResourcePath(agentId) ?? ArtCatalog.BustResourcePath(agentId), LoadSd(agentId));
+
+        public static Sprite ChromeSprite(string fileWithoutExt) =>
+            ToSprite(ArtCatalog.ChromeResourcePath(fileWithoutExt), LoadChrome(fileWithoutExt));
+
+        public static Sprite GemSprite(GemColor color)
+        {
+            var file = ArtCatalog.GemFileForColor(color);
+            return string.IsNullOrEmpty(file) ? null : ChromeSprite(file);
+        }
+
+        public static Sprite FrameSprite(string rarity) =>
+            ToSprite(ArtCatalog.FrameResourcePath(rarity), LoadFrame(rarity));
 
         public static bool ApplyBust(RawImage target, string agentId)
         {
@@ -88,6 +115,21 @@ namespace Heartline.Shared
             return true;
         }
 
+        public static bool ApplyFullbody(RawImage target, string agentId)
+        {
+            if (target == null) return false;
+            var tex = LoadFullbody(agentId);
+            if (tex == null)
+            {
+                // Fall back to bust so callers still get a portrait.
+                return ApplyBust(target, agentId);
+            }
+            target.texture = tex;
+            target.color = Color.white;
+            target.enabled = true;
+            return true;
+        }
+
         public static bool ApplyRoomBg(RawImage target, string roomIdWithoutExt)
         {
             if (target == null) return false;
@@ -102,6 +144,105 @@ namespace Heartline.Shared
             target.enabled = true;
             return true;
         }
+
+        /// <summary>Apply action-mapped Room BG with catalog fallback (Talk/Gift/Date/Sleepover).</summary>
+        public static bool ApplyRoomBgForAction(RawImage target, string action)
+        {
+            if (target == null) return false;
+            var primary = ArtCatalog.RoomForAction(action);
+            if (ApplyRoomBg(target, primary)) return true;
+            return ApplyRoomBg(target, ArtCatalog.RoomFallbackForAction(action));
+        }
+
+        public static bool ApplyChrome(RawImage target, string fileWithoutExt)
+        {
+            if (target == null) return false;
+            var tex = LoadChrome(fileWithoutExt);
+            if (tex == null)
+            {
+                target.enabled = false;
+                return false;
+            }
+            target.texture = tex;
+            target.color = Color.white;
+            target.enabled = true;
+            return true;
+        }
+
+        public static bool ApplyChrome(Image target, string fileWithoutExt)
+        {
+            if (target == null) return false;
+            var sp = ChromeSprite(fileWithoutExt);
+            if (sp == null) return false;
+            target.sprite = sp;
+            target.preserveAspect = true;
+            target.color = Color.white;
+            target.type = Image.Type.Simple;
+            target.enabled = true;
+            return true;
+        }
+
+        public static bool ApplyCurrencyIcon(RawImage target, string currencyFile) =>
+            ApplyChrome(target, currencyFile);
+
+        public static bool ApplyRarityFrame(RawImage target, string rarity) =>
+            ApplyChrome(target, ArtCatalog.FrameFileForRarity(rarity));
+
+        public static bool ApplyRarityFrame(Image target, string rarity) =>
+            ApplyChrome(target, ArtCatalog.FrameFileForRarity(rarity));
+
+        public static bool ApplyGem(Image target, GemColor color)
+        {
+            if (target == null) return false;
+            var sp = GemSprite(color);
+            if (sp == null) return false;
+            target.sprite = sp;
+            target.preserveAspect = true;
+            target.color = Color.white;
+            target.type = Image.Type.Simple;
+            target.enabled = true;
+            return true;
+        }
+
+        public static bool ApplyGem(RawImage target, GemColor color)
+        {
+            if (target == null) return false;
+            var tex = LoadGem(color);
+            if (tex == null)
+            {
+                target.enabled = false;
+                return false;
+            }
+            target.texture = tex;
+            target.color = Color.white;
+            target.enabled = true;
+            return true;
+        }
+
+        /// <summary>
+        /// Soft-apply buttons/panels sheet to a Button Image. Keeps layout; on miss leaves existing color.
+        /// </summary>
+        public static bool SoftApplyButtonPanel(Image target)
+        {
+            if (target == null) return false;
+            var sp = ChromeSprite(ArtCatalog.ButtonsPanelsSheet);
+            if (sp == null) return false;
+            target.sprite = sp;
+            target.type = Image.Type.Simple;
+            // Keep a readable tint so labels stay legible over the sheet.
+            var c = target.color;
+            if (c.a < 0.5f) c.a = 0.95f;
+            target.color = new Color(
+                Mathf.Clamp01(c.r * 0.85f + 0.15f),
+                Mathf.Clamp01(c.g * 0.85f + 0.15f),
+                Mathf.Clamp01(c.b * 0.85f + 0.15f),
+                c.a);
+            target.enabled = true;
+            return true;
+        }
+
+        public static bool SoftApplyButtonPanel(Button button) =>
+            button != null && SoftApplyButtonPanel(button.GetComponent<Image>());
 
         public static bool ApplyTexture(RawImage target, Texture2D tex)
         {
@@ -130,7 +271,7 @@ namespace Heartline.Shared
             if (tex == null)
             {
                 // Some Unity imports keep Texture type; try as Object then cast fails — LoadImage instead.
-                var bytes = TryReadPngBytes(resourcesPathNoExt);
+                var bytes = TryReadImageBytes(resourcesPathNoExt);
                 if (bytes != null && bytes.Length > 0)
                 {
                     tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
@@ -149,24 +290,30 @@ namespace Heartline.Shared
             return tex;
         }
 
-        static byte[] TryReadPngBytes(string resourcesPathNoExt)
+        static byte[] TryReadImageBytes(string resourcesPathNoExt)
         {
-            var relativePng = resourcesPathNoExt.Replace('\\', '/') + ".png";
+            var relative = resourcesPathNoExt.Replace('\\', '/');
+            string[] exts = { ".png", ".jpg", ".jpeg" };
 
-            // StreamingAssets/Art/...
-            var streaming = Path.Combine(Application.streamingAssetsPath, relativePng);
-            if (File.Exists(streaming))
-                return File.ReadAllBytes(streaming);
+            foreach (var ext in exts)
+            {
+                var relativeFile = relative + ext;
 
-            // Editor / repo: Assets/_Project/Art/...
-            var projectArt = Path.Combine(Application.dataPath, "_Project", relativePng);
-            if (File.Exists(projectArt))
-                return File.ReadAllBytes(projectArt);
+                // StreamingAssets/Art/...
+                var streaming = Path.Combine(Application.streamingAssetsPath, relativeFile);
+                if (File.Exists(streaming))
+                    return File.ReadAllBytes(streaming);
 
-            // Resources folder on disk (pre-import / Editor): Assets/Resources/Art/...
-            var resourcesDisk = Path.Combine(Application.dataPath, "Resources", relativePng);
-            if (File.Exists(resourcesDisk))
-                return File.ReadAllBytes(resourcesDisk);
+                // Editor / repo: Assets/_Project/Art/...
+                var projectArt = Path.Combine(Application.dataPath, "_Project", relativeFile);
+                if (File.Exists(projectArt))
+                    return File.ReadAllBytes(projectArt);
+
+                // Resources folder on disk (pre-import / Editor): Assets/Resources/Art/...
+                var resourcesDisk = Path.Combine(Application.dataPath, "Resources", relativeFile);
+                if (File.Exists(resourcesDisk))
+                    return File.ReadAllBytes(resourcesDisk);
+            }
 
             return null;
         }

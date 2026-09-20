@@ -8,6 +8,7 @@ using Heartline.Save;
 using Heartline.Shared;
 using Heartline.App;
 using Heartline.Analytics;
+using Heartline.SyncMatch;
 
 namespace Heartline.Hub
 {
@@ -16,12 +17,14 @@ namespace Heartline.Hub
         [SerializeField] TMP_Text squadText;
         [SerializeField] Text squadTextLegacy;
         [SerializeField] RawImage portraitImage;
+        [SerializeField] RawImage frameImage;
         string _selectedId = "mira";
 
-        public void BindLegacy(Text squad, RawImage portrait = null)
+        public void BindLegacy(Text squad, RawImage portrait = null, RawImage frame = null)
         {
             squadTextLegacy = squad;
             if (portrait != null) portraitImage = portrait;
+            if (frame != null) frameImage = frame;
             Refresh();
         }
 
@@ -72,6 +75,14 @@ namespace Heartline.Hub
             HudText.Set(squadText, squadTextLegacy, sb.ToString());
             if (portraitImage != null)
                 ArtLoader.ApplyBust(portraitImage, _selectedId);
+            if (frameImage != null)
+                ArtLoader.ApplyRarityFrame(frameImage, RarityFor(_selectedId));
+        }
+
+        static string RarityFor(string agentId)
+        {
+            var a = ContentRegistry.GetAgent(agentId);
+            return a != null && !string.IsNullOrEmpty(a.rarity) ? a.rarity : "N";
         }
 
         static AgentSave Ensure(HeartlineSave d, string id)
