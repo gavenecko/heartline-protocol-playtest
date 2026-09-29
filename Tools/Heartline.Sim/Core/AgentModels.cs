@@ -28,6 +28,7 @@ namespace Heartline.Sim
         [JsonPropertyName("statsLv60")] public StatBlock StatsLv60 { get; set; }
         [JsonPropertyName("maxLevelSoft")] public int MaxLevelSoft { get; set; } = 60;
         [JsonPropertyName("preferredGifts")] public List<string> PreferredGifts { get; set; } = new();
+        [JsonPropertyName("secret")] public bool Secret { get; set; }
 
         public bool IsAdult => Age >= 18;
 

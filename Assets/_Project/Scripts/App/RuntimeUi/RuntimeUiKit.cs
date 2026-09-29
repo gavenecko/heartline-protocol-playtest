@@ -24,12 +24,18 @@ namespace Heartline.App.RuntimeUi
             var scaler = go.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 0.5f;
+            // Portrait phones: lock to width so text wrapping / horizontal layouts are identical on
+            // every device; taller screens (19.5:9 etc.) just get extra vertical room.
+            scaler.matchWidthOrHeight = 0f;
             go.AddComponent<GraphicRaycaster>();
             if (Object.FindObjectOfType<UnityEngine.EventSystems.EventSystem>() == null)
             {
                 var es = new GameObject("EventSystem");
-                es.AddComponent<UnityEngine.EventSystems.EventSystem>();
+                var evs = es.AddComponent<UnityEngine.EventSystems.EventSystem>();
+                // High-DPI phones: a 10px drag threshold turns slightly-moving taps inside
+                // ScrollRects into drags (button never fires). Scale it with screen density.
+                if (Screen.dpi > 0)
+                    evs.pixelDragThreshold = Mathf.Max(evs.pixelDragThreshold, Mathf.RoundToInt(Screen.dpi * 0.08f));
                 es.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
             }
             return canvas;
@@ -48,6 +54,9 @@ namespace Heartline.App.RuntimeUi
             t.color = color ?? Color.white;
             t.horizontalOverflow = HorizontalWrapMode.Wrap;
             t.verticalOverflow = VerticalWrapMode.Overflow;
+            // Labels never need touches; leaving raycastTarget on lets them silently swallow
+            // taps meant for buttons they overlap (very easy to hit on small phone screens).
+            t.raycastTarget = false;
             var rt = t.rectTransform;
             rt.anchorMin = anchorMin;
             rt.anchorMax = anchorMax;

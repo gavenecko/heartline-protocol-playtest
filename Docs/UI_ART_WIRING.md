@@ -18,7 +18,9 @@ Extends `ArtCatalog` / `ArtLoader` so the vertical slice looks art-driven withou
 
 ## Load path
 
-Same as busts: `Resources.Load` → disk `StreamingAssets/Art` → `Assets/_Project/Art` → `Assets/Resources/Art`.
+`Resources.Load` → `StreamingAssets/Art` (read via UnityWebRequest on Android, where it lives inside the APK) → **Editor only:** `Assets/_Project/Art`, `Assets/Resources/Art` on disk.
+
+**Player builds (Android APK) can only see `Assets/Resources` and `StreamingAssets`.** `Assets/_Project/Art` does not exist in a build, so every texture the runtime UI needs must be mirrored under `Assets/Resources/Art/…` (same relative path). The sim test `art: … in Resources` fails if one is missing. Files in `Resources` must be real PNG/JPG data matching their extension (several `.png` sources in `_Project/Art` are actually JPEG bytes; the Resources copies were re-encoded as PNG). Idle loop MP4s stay in `StreamingAssets` (VideoPlayer plays the in-APK URL directly).
 
 Chrome singles + buttons sheet are mirrored under `Assets/Resources/Art/UI/Chrome/`. Extra Room BGs already mirrored under `Resources/Art/Environment/Rooms/`. No StreamingAssets duplicates for chrome (Editor/_Project + Resources cover offline play).
 

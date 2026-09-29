@@ -65,9 +65,11 @@ namespace Heartline.Meta
             AnalyticsSink.Emit("tower_clear", $"floor={floor};cp={d.towerLastCheckpoint}");
             Refresh();
             if (statusTextLegacy != null)
+            {
                 var bonus = (floor >= 10 && SaveService.Instance.Data.unlockedAgents != null && SaveService.Instance.Data.unlockedAgents.Contains("velvet"))
                     ? " Secret agent Velvet Noir unlocked!" : "";
                 statusTextLegacy.text += $"\n\nCleared floor {floor}." + (TowerMath.IsCheckpoint(floor) ? " Checkpoint saved." : "") + bonus;
+            }
         }
 
         public void FailNext()

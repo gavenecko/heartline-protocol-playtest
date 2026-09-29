@@ -1,4 +1,3 @@
-using System.IO;
 using UnityEngine;
 using Heartline.SyncMatch;
 
@@ -39,13 +38,18 @@ namespace Heartline.App
 
         static T LoadJson<T>(string file)
         {
-            var path = Path.Combine(Application.streamingAssetsPath, "Tables", file);
-            if (!File.Exists(path))
+            // Android: StreamingAssets is inside the APK, so System.IO.File can't see it.
+            var json = Heartline.Shared.JsonLoader.TryReadStreamingText(file);
+            if (string.IsNullOrEmpty(json)) return default;
+            try
             {
-                Debug.LogError("Missing " + path);
+                return JsonUtility.FromJson<T>(json);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[HP] Bad JSON in {file}: {e.Message}");
                 return default;
             }
-            return JsonUtility.FromJson<T>(File.ReadAllText(path));
         }
     }
 }

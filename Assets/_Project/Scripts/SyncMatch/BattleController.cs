@@ -46,6 +46,7 @@ namespace Heartline.SyncMatch
         bool _showResults;
         string _resultsSummary = "";
         Text resultsTextLegacy;
+        GameObject resultsRoot;
         RawImage[] lanePortraits;
         readonly System.Collections.Generic.List<(string id, int beforeLv, int afterLv, int xp, int need, int cap)> _xpLines
             = new System.Collections.Generic.List<(string, int, int, int, int, int)>();
@@ -62,8 +63,9 @@ namespace Heartline.SyncMatch
         public int SwapsLeft => _swapsLeft;
         public BoardSimulator Board => _board;
 
-        public void BindLegacy(Text board, Text log, Text enemy, Text gauge, Text lane = null, Text status = null, Text results = null, RawImage[] portraits = null)
+        public void BindLegacy(Text board, Text log, Text enemy, Text gauge, Text lane = null, Text status = null, Text results = null, RawImage[] portraits = null, GameObject resultsPanel = null)
         {
+            resultsRoot = resultsPanel;
             boardTextLegacy = board;
             logTextLegacy = log;
             enemyHpTextLegacy = enemy;
@@ -467,6 +469,8 @@ namespace Heartline.SyncMatch
             sb.AppendLine();
             sb.AppendLine("[Continue] → Hub");
             _resultsSummary = sb.ToString();
+            if (resultsRoot != null)
+                resultsRoot.SetActive(true);
             if (resultsTextLegacy != null)
             {
                 resultsTextLegacy.gameObject.SetActive(true);

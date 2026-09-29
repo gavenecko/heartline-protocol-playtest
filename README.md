@@ -16,6 +16,13 @@ Offline / SFW prototype of **Heartline Protocol**: Sync Match (match-3 + lanes +
 
 Portrait target: **1080×1920**.
 
+## Android playtest APK (no Unity needed)
+
+Every push to `main` (or a manual **Run workflow**) builds a development APK via GitHub Actions
+(`.github/workflows/android-build.yml`; staged at `Tools/ci/android-build.yml` until moved, see the doc) and attaches it to the **`playtest-latest`** pre-release.
+Setup (3 repo secrets), install steps, playtest checklist and the in-game **LOG** overlay:
+**[Docs/PLAYTEST_ANDROID.md](Docs/PLAYTEST_ANDROID.md)**.
+
 ## Play path
 
 1. **00_Boot** — Age gate (18+) → Title  
@@ -85,7 +92,14 @@ Source of truth: `Docs/heartline-protocol-economy-notes.md` + `Assets/StreamingA
 cd Tools/Heartline.Sim && dotnet run -c Release
 ```
 
-Expected: **204 passed, 0 failed** (board, Prism, gauge, combo, lanes, ages×12, Aff, Room, stages, FTUE, stars, Bond, squad, regen, pity, jobs, gift sink, unlock reasons, XP/promote, dailies, **arena marks**, **tower floor unlock**).
+Expected: **303 passed, 0 failed** (board, Prism, gauge, combo, lanes, ages (12 launch + 2 secret), Aff, Room, stages, FTUE, stars, Bond, squad, regen, pity, jobs, gift sink, unlock reasons, XP/promote, dailies, **arena marks**, **tower floor unlock**, **player-build art coverage**).
+
+Approximate Unity compile check (no Unity install; compiles every asmdef against public UnityEngine reference DLLs):
+
+```bash
+python3 Tools/unity_compile_check.py            # standalone defines
+python3 Tools/unity_compile_check.py --android  # UNITY_ANDROID branches
+```
 
 ## 0.5.0-slice-freeze notes
 
@@ -156,7 +170,7 @@ Under `Docs/` (BUILD_READY, vertical slice, tech arch, FTUE, backlog, roster kit
 
 ## Module map (asmdefs)
 
-`Heartline.Shared` · `Heartline.SyncMatch` · `Heartline.App` · `Heartline.Hub` · `Heartline.Room` · `Heartline.Save` · `Heartline.ContentFlags` · `Heartline.Analytics` · `Heartline.Gacha` · `Heartline.Meta`
+`Heartline.Shared` · `Heartline.SyncMatch` · `Heartline.App` · `Heartline.Dialogue` (DialogueService; namespace `Heartline.App`, split out so Hub/SyncMatch don't form a cycle with App) · `Heartline.Hub` · `Heartline.Room` · `Heartline.Save` · `Heartline.ContentFlags` · `Heartline.Analytics` · `Heartline.Gacha` · `Heartline.Meta` · `Heartline.DevTools` (dev-build log overlay)
 
 ## Palette (art bible)
 

@@ -294,7 +294,10 @@ namespace Heartline.Save
 
         public void LoadOrCreate()
         {
+            // .bak = previous good save (kept by Save()); used if the main file is missing/corrupt.
+            string bak = PathFile + ".bak";
             string path = File.Exists(PathFile) ? PathFile
+                : File.Exists(bak) ? bak
                 : (File.Exists(LegacyPathV4) ? LegacyPathV4
                 : (File.Exists(LegacyPathV3) ? LegacyPathV3
                 : (File.Exists(LegacyPath) ? LegacyPath : null)));
@@ -306,9 +309,20 @@ namespace Heartline.Save
                     if (Data == null) throw new Exception("null save");
                     Migrate(Data);
                 }
-                catch
+                catch (Exception e)
                 {
-                    Data = NewGame();
+                    Debug.LogWarning("[HP] Save unreadable (" + path + "): " + e.Message);
+                    Data = null;
+                    if (path == PathFile && File.Exists(bak))
+                    {
+                        try
+                        {
+                            Data = JsonUtility.FromJson<HeartlineSave>(File.ReadAllText(bak));
+                            if (Data != null) Migrate(Data);
+                        }
+                        catch { Data = null; }
+                    }
+                    if (Data == null) Data = NewGame();
                 }
             }
             else Data = NewGame();
@@ -392,14 +406,44 @@ namespace Heartline.Save
 
         public void Save()
         {
+            if (Data == null) return;
             ApplyRegen();
             Data.schema = GameConstants.SaveSchemaVersion;
-            File.WriteAllText(PathFile, JsonUtility.ToJson(Data, true));
+            // Atomic-ish write: Android can kill the app mid-write; a torn JSON file would make
+            // LoadOrCreate silently start a new game. Write a temp file, then swap it in.
+            var tmp = PathFile + ".tmp";
+            try
+            {
+                File.WriteAllText(tmp, JsonUtility.ToJson(Data, true));
+                if (File.Exists(PathFile))
+                {
+                    var bak = PathFile + ".bak";
+                    if (File.Exists(bak)) File.Delete(bak);
+                    File.Move(PathFile, bak);
+                }
+                File.Move(tmp, PathFile);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[HP] Save failed (" + PathFile + "): " + e.Message);
+            }
+        }
+
+        // Android may kill a backgrounded app without OnApplicationQuit; persist on pause.
+        void OnApplicationPause(bool paused)
+        {
+            if (paused && Instance == this) Save();
+        }
+
+        void OnApplicationQuit()
+        {
+            if (Instance == this) Save();
         }
 
         public void ResetAll()
         {
             if (File.Exists(PathFile)) File.Delete(PathFile);
+            if (File.Exists(PathFile + ".bak")) File.Delete(PathFile + ".bak");
             if (File.Exists(LegacyPathV4)) File.Delete(LegacyPathV4);
             if (File.Exists(LegacyPathV3)) File.Delete(LegacyPathV3);
             if (File.Exists(LegacyPath)) File.Delete(LegacyPath);

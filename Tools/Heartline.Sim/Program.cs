@@ -21,6 +21,7 @@ static class Program
         TestComboCurve();
         TestLaneModifiers();
         TestAgentAgesAdult();
+        TestBuildArtCoverage();
         TestAffRankThresholds();
         TestRoomTalkGift();
         TestStageCombatMath();
@@ -271,7 +272,11 @@ static class Program
         Assert(path != null, "agents: json found");
         if (path == null) return;
         var catalog = AgentDefinition.LoadFromJson(File.ReadAllText(path));
-        Assert(catalog.Agents.Count == 12, "agents: launch 12 in data");
+        Assert(catalog.Agents.Count(a => !a.Secret) == 12, "agents: launch 12 in data");
+        Assert(catalog.Agents.Count(a => a.Secret) == 2, "agents: 2 secret in data");
+        Assert(catalog.Agents.Any(a => a.Id == "velvet" && a.Secret), "agents: velvet is secret");
+        Assert(catalog.Agents.Any(a => a.Id == "rook" && a.Secret), "agents: rook is secret");
+        Assert(catalog.Agents.Count == 14, "agents: roster 14 total");
         foreach (var a in catalog.Agents)
         {
             Assert(a.Age >= 18, $"agents: {a.Id} age {a.Age} ≥ 18");
@@ -600,6 +605,66 @@ static class Program
         Assert(highest == 10 && cp == 10, "tower: slice complete CP10");
         Assert(!TowerMath.CanAttempt(11, highest), "tower: F11 beyond slice");
         Assert(!TowerMath.TryClear(10, ref sta, ref highest, ref cp, 10, TowerMath.DefaultStaminaCost, out var doneErr) && doneErr == "complete", "tower: no re-clear at cap");
+    }
+
+    /// <summary>
+    /// Player builds can only see Assets/Resources (Resources.Load) and StreamingAssets.
+    /// Every texture the runtime UI asks ArtLoader for must exist under Assets/Resources.
+    /// </summary>
+    static void TestBuildArtCoverage()
+    {
+        var agentsPath = FindAgentsJson();
+        if (agentsPath == null) { Assert(false, "art: agents.json found"); return; }
+        var assets = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(agentsPath), "..", ".."));
+        var resources = Path.Combine(assets, "Resources");
+        bool Has(string resPath) =>
+            resPath != null && new[] { ".png", ".jpg", ".jpeg" }.Any(e => File.Exists(Path.Combine(resources, resPath + e)));
+
+        var catalog = AgentDefinition.LoadFromJson(File.ReadAllText(agentsPath));
+        foreach (var a in catalog.Agents)
+        {
+            Assert(Heartline.Shared.ArtCatalog.TryGetFolder(a.Id, out _), $"art: {a.Id} mapped to a folder");
+            Assert(Has(Heartline.Shared.ArtCatalog.BustResourcePath(a.Id)), $"art: {a.Id} bust in Resources");
+            Assert(Has(Heartline.Shared.ArtCatalog.SdResourcePath(a.Id)), $"art: {a.Id} sd in Resources");
+            Assert(Has(Heartline.Shared.ArtCatalog.FullbodyResourcePath(a.Id)), $"art: {a.Id} fullbody in Resources");
+        }
+        foreach (var id in new[] { "velvet", "rook" })
+        {
+            Assert(Has(Heartline.Shared.ArtCatalog.IdlePosterResourcePath(id)), $"art: {id} idle poster in Resources");
+            var loop = Heartline.Shared.ArtCatalog.IdleLoopRelativePath(id);
+            Assert(File.Exists(Path.Combine(assets, "StreamingAssets", loop)), $"art: {id} idle loop in StreamingAssets");
+        }
+        var rooms = new[]
+        {
+            Heartline.Shared.ArtCatalog.RoomSuiteEvening, Heartline.Shared.ArtCatalog.RoomAgentLoft,
+            Heartline.Shared.ArtCatalog.RoomCafe, Heartline.Shared.ArtCatalog.RoomRainLounge,
+            Heartline.Shared.ArtCatalog.RoomNeonOverlook, Heartline.Shared.ArtCatalog.RoomRooftop,
+            Heartline.Shared.ArtCatalog.RoomSleepoverMorning, Heartline.Shared.ArtCatalog.RoomClinic
+        };
+        foreach (var r in rooms)
+            Assert(Has(Heartline.Shared.ArtCatalog.RoomResourcePath(r)), $"art: room {r} in Resources");
+        foreach (var action in new[] { "talk", "gift", "date", "sleepover", "morning" })
+            Assert(Has(Heartline.Shared.ArtCatalog.RoomResourcePath(Heartline.Shared.ArtCatalog.RoomForAction(action))),
+                $"art: room for {action} in Resources");
+        var chrome = new[]
+        {
+            Heartline.Shared.ArtCatalog.NavBottom, Heartline.Shared.ArtCatalog.ButtonsPanelsSheet,
+            Heartline.Shared.ArtCatalog.CurrencySta, Heartline.Shared.ArtCatalog.CurrencyHe,
+            Heartline.Shared.ArtCatalog.CurrencyLc, Heartline.Shared.ArtCatalog.CurrencyPc,
+            Heartline.Shared.ArtCatalog.CurrencyTicket, Heartline.Shared.ArtCatalog.CurrencyMarks
+        };
+        foreach (var c in chrome)
+            Assert(Has(Heartline.Shared.ArtCatalog.ChromeResourcePath(c)), $"art: chrome {c} in Resources");
+        foreach (var r in new[] { "N", "R", "SR", "SSR", "UR" })
+            Assert(Has(Heartline.Shared.ArtCatalog.FrameResourcePath(r)), $"art: frame {r} in Resources");
+        foreach (Heartline.Shared.GemColor g in Enum.GetValues(typeof(Heartline.Shared.GemColor)))
+        {
+            if (g == Heartline.Shared.GemColor.Empty) continue;
+            Assert(Has(Heartline.Shared.ArtCatalog.GemResourcePath(Heartline.Shared.ArtCatalog.GemFileForColor(g))),
+                $"art: gem {g} in Resources");
+        }
+        Assert(Has(Heartline.Shared.ArtCatalog.MarketingResourcePath(Heartline.Shared.ArtCatalog.KeyVisual)),
+            "art: key visual in Resources");
     }
 
     static string FindAgentsJson()

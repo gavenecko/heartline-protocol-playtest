@@ -1,0 +1,195 @@
+name: Android playtest build
+
+# Builds an installable development APK and publishes it to the `playtest-latest`
+# pre-release so it can be downloaded straight from a phone browser.
+# See Docs/PLAYTEST_ANDROID.md.
+#
+# INSTALL: this file must live at .github/workflows/android-build.yml to run.
+# It is staged here because the automation token that opened the PR lacks the
+# GitHub `workflow` scope. Move it with:
+#   git mv Tools/ci/android-build.yml .github/workflows/android-build.yml
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write # create/update the playtest-latest pre-release
+
+concurrency:
+  group: android-playtest-build
+  cancel-in-progress: true
+
+env:
+  UNITY_VERSION: 6000.0.32f1
+  APK_NAME: HeartlineProtocol-playtest
+  RELEASE_TAG: playtest-latest
+
+jobs:
+  checks:
+    name: Static checks (sim tests + compile check)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Sim tests
+        run: bash Tools/run_sim_tests.sh
+      - name: Approximate Unity compile check (Standalone + Android defines)
+        run: |
+          python3 Tools/unity_compile_check.py
+          python3 Tools/unity_compile_check.py --android
+
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Check required secrets
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          missing=()
+          [ -z "$UNITY_LICENSE" ]  && missing+=("UNITY_LICENSE")
+          [ -z "$UNITY_EMAIL" ]    && missing+=("UNITY_EMAIL")
+          [ -z "$UNITY_PASSWORD" ] && missing+=("UNITY_PASSWORD")
+          if [ ${#missing[@]} -gt 0 ]; then
+            msg="Missing repository secret(s): ${missing[*]}. Add them under Settings -> Secrets and variables -> Actions (see Docs/PLAYTEST_ANDROID.md)."
+            echo "::error title=Unity secrets missing::$msg"
+            {
+              echo "## :x: Android build not started"
+              echo ""
+              echo "$msg"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "All Unity secrets present."
+
+      - name: Free disk space (Unity Android image is large)
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: true
+
+      - uses: actions/checkout@v4
+        with:
+          lfs: false # repo does not use Git LFS
+
+      - name: Strip adult art from the build (never ships in main's playtest APK)
+        run: |
+          removed=0
+          for d in Assets/StreamingAssets/Art/Adult Assets/Resources/Art/Adult; do
+            if [ -e "$d" ]; then echo "Removing $d"; rm -rf "$d" "$d.meta"; removed=1; fi
+          done
+          # Any other folder literally named Adult under shipped roots.
+          while IFS= read -r -d '' d; do
+            echo "Removing $d"; rm -rf "$d" "$d.meta"; removed=1
+          done < <(find Assets/StreamingAssets Assets/Resources -type d -iname adult -print0 2>/dev/null)
+          [ "$removed" = 0 ] && echo "No adult art folders found (expected on main)."
+          true
+
+      - uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-Android-${{ env.UNITY_VERSION }}-${{ hashFiles('Packages/manifest.json', 'ProjectSettings/**', 'Assets/**/*.asmdef') }}
+          restore-keys: |
+            Library-Android-${{ env.UNITY_VERSION }}-
+            Library-Android-
+
+      - name: Build APK (game-ci/unity-builder)
+        id: build
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: ${{ env.UNITY_VERSION }}
+          targetPlatform: Android
+          buildName: ${{ env.APK_NAME }}
+          androidExportType: androidPackage # .apk, not .aab
+          # Monotonic versionCode so each new APK installs over the previous one.
+          versioning: Custom
+          version: 0.1.${{ github.run_number }}
+          androidVersionCode: ${{ github.run_number }}
+          # Development build: enables the on-screen LOG overlay (DevLogOverlay).
+          customParameters: -Development
+          # The adult-art strip step above modifies the checkout.
+          allowDirtyBuild: true
+          # Optional stable signing key (so updates install without uninstalling / losing saves).
+          # Leave these secrets unset to use Unity's debug key.
+          androidKeystoreName: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && 'heartline-playtest.keystore' || '' }}
+          androidKeystoreBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+          androidKeyaliasName: ${{ secrets.ANDROID_KEYALIAS_NAME }}
+          androidKeyaliasPass: ${{ secrets.ANDROID_KEYALIAS_PASS }}
+
+      - name: Locate APK
+        id: apk
+        run: |
+          apk=$(find build/Android -maxdepth 2 -name '*.apk' | head -n1)
+          if [ -z "$apk" ]; then
+            echo "::error::No .apk produced under build/Android"; ls -laR build || true; exit 1
+          fi
+          out="build/${APK_NAME}.apk"
+          sudo cp "$apk" "$out"
+          sudo chmod a+r "$out"
+          echo "path=$out" >> "$GITHUB_OUTPUT"
+          echo "size=$(du -h "$out" | cut -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APK_NAME }}
+          path: ${{ steps.apk.outputs.path }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Remove previous playtest-latest release (tag is moved to this commit)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --cleanup-tag --yes 2>/dev/null \
+            || echo "No previous $RELEASE_TAG release."
+          git push --delete origin "refs/tags/$RELEASE_TAG" 2>/dev/null || true
+
+      - name: Publish playtest-latest pre-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          target_commitish: ${{ github.sha }}
+          name: "Playtest build ${{ steps.build.outputs.buildVersion }} (${{ github.sha }})"
+          prerelease: true
+          make_latest: false
+          files: ${{ steps.apk.outputs.path }}
+          body: |
+            **Heartline Protocol – Android playtest (development build)**
+
+            - Version `${{ steps.build.outputs.buildVersion }}` · versionCode `${{ steps.build.outputs.androidVersionCode }}`
+            - Commit `${{ github.sha }}` on `${{ github.ref_name }}`
+            - Built by run [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+            **Install:** on your Android phone, open this page, tap `${{ env.APK_NAME }}.apk`, allow your browser to
+            install unknown apps, then open it. Full guide + playtest checklist: `Docs/PLAYTEST_ANDROID.md`.
+
+            **Report bugs:** tap the small **LOG** button (top-right) or tap with 3 fingers → **Copy** → paste into your report.
+
+      - name: Job summary
+        run: |
+          {
+            echo "## :white_check_mark: Android playtest APK built"
+            echo ""
+            echo "- APK: \`${APK_NAME}.apk\` (${{ steps.apk.outputs.size }})"
+            echo "- Version: \`${{ steps.build.outputs.buildVersion }}\`, versionCode \`${{ steps.build.outputs.androidVersionCode }}\`"
+            echo "- Phone download: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${RELEASE_TAG}"
+          } >> "$GITHUB_STEP_SUMMARY"

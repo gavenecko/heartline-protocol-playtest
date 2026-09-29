@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <RootNamespace>Heartline.Sim</RootNamespace>
+    <LangVersion>12</LangVersion>
+  </PropertyGroup>
+  <!-- Unity-free runtime files linked in so the sim can verify build-time art coverage. -->
+  <ItemGroup>
+    <Compile Include="../../Assets/_Project/Scripts/Shared/GemColor.cs" Link="Linked/GemColor.cs" />
+    <Compile Include="../../Assets/_Project/Scripts/Shared/Art/ArtCatalog.cs" Link="Linked/ArtCatalog.cs" />
+  </ItemGroup>
+</Project>

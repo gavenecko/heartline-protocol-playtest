@@ -8,6 +8,7 @@ using TMPro;
 using Heartline.Save;
 using Heartline.Shared;
 using Heartline.SyncMatch;
+using AgentDefinition = Heartline.SyncMatch.AgentDefinition;
 using Heartline.Analytics;
 
 namespace Heartline.Meta

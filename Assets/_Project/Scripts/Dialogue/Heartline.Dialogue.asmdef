@@ -1,0 +1,14 @@
+{
+  "name": "Heartline.Dialogue",
+  "rootNamespace": "Heartline.App",
+  "references": ["Heartline.Shared","Heartline.Save","Heartline.Analytics"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

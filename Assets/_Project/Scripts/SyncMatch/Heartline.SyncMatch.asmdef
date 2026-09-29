@@ -1,7 +1,7 @@
 {
   "name": "Heartline.SyncMatch",
   "rootNamespace": "Heartline.SyncMatch",
-  "references": ["Heartline.Shared","Heartline.Save","Heartline.Analytics","Unity.TextMeshPro","UnityEngine.UI"],
+  "references": ["Heartline.Shared","Heartline.Dialogue","Heartline.Save","Heartline.Analytics","Unity.TextMeshPro","UnityEngine.UI"],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

@@ -9,7 +9,7 @@ namespace Heartline.Shared
 {
     /// <summary>
     /// Resolve + play Imagine idle loop MP4s (Velvet / Rook) on a RawImage via VideoPlayer.
-    /// Path order mirrors <see cref="ArtLoader"/>: StreamingAssets → Assets/_Project/Art.
+    /// Source: StreamingAssets (APK-safe URL on Android) → [Editor only] Assets/_Project/Art.
     /// </summary>
     public static class IdleVideo
     {
@@ -30,7 +30,10 @@ namespace Heartline.Shared
             return ArtCatalog.IdleLoopRelativePath(agentId);
         }
 
-        /// <summary>Absolute file path if the loop exists on disk; otherwise null.</summary>
+        /// <summary>
+        /// Absolute file path if the loop exists on disk; otherwise null.
+        /// Only meaningful where StreamingAssets is a real folder (Editor / desktop).
+        /// </summary>
         public static string ResolveIdleLoopFilePath(string agentId)
         {
             var relative = IdleLoopRelativePath(agentId);
@@ -39,15 +42,27 @@ namespace Heartline.Shared
             var streaming = Path.Combine(Application.streamingAssetsPath, relative);
             if (File.Exists(streaming)) return streaming;
 
+#if UNITY_EDITOR
             var projectArt = Path.Combine(Application.dataPath, "_Project", relative);
             if (File.Exists(projectArt)) return projectArt;
-
+#endif
             return null;
         }
 
-        /// <summary>file:// URL for VideoPlayer.url, or null if missing.</summary>
+        /// <summary>
+        /// URL for VideoPlayer.url, or null if missing.
+        /// Android: StreamingAssets is inside the APK (jar:file://…!/assets/…) — File.Exists can't
+        /// see it, but VideoPlayer can play that URL directly, so we hand it over unchecked and
+        /// fall back to the bust/poster via <see cref="VideoPlayer.errorReceived"/> if it fails.
+        /// </summary>
         public static string ResolveIdleLoopUrl(string agentId)
         {
+            var relative = IdleLoopRelativePath(agentId);
+            if (string.IsNullOrEmpty(relative)) return null;
+
+            if (StreamingFiles.RequiresWebRequest)
+                return StreamingFiles.PathOf(relative);
+
             var path = ResolveIdleLoopFilePath(agentId);
             if (string.IsNullOrEmpty(path)) return null;
             try
@@ -80,9 +95,12 @@ namespace Heartline.Shared
                 player.playOnAwake = false;
                 player.skipOnDrop = true;
                 player.audioOutputMode = VideoAudioOutputMode.None;
-                player.Prepare();
                 player.prepareCompleted -= OnPrepared;
                 player.prepareCompleted += OnPrepared;
+                player.errorReceived -= OnError;
+                player.errorReceived += OnError;
+                FallbackAgent[player] = agentId;
+                player.Prepare();
                 if (player.isPrepared)
                     player.Play();
             }
@@ -99,11 +117,30 @@ namespace Heartline.Shared
                 vp.Play();
         }
 
+        /// <summary>VideoPlayer → agent id, so a failed loop can fall back to a still.</summary>
+        static readonly Dictionary<VideoPlayer, string> FallbackAgent = new Dictionary<VideoPlayer, string>();
+
+        static void OnError(VideoPlayer vp, string message)
+        {
+            if (vp == null) return;
+            Debug.LogWarning($"[HP] Idle video failed ({vp.url}): {message} — falling back to still.");
+            vp.errorReceived -= OnError;
+            vp.prepareCompleted -= OnPrepared;
+            FallbackAgent.TryGetValue(vp, out var agentId);
+            FallbackAgent.Remove(vp);
+            var raw = vp.GetComponent<RawImage>();
+            if (raw == null) return;
+            if (!ArtLoader.ApplyBust(raw, agentId))
+                ArtLoader.ApplyTexture(raw, ArtLoader.LoadIdlePoster(agentId));
+        }
+
         public static void Stop(ref VideoPlayer player, ref RenderTexture rt)
         {
             if (player != null)
             {
                 player.prepareCompleted -= OnPrepared;
+                player.errorReceived -= OnError;
+                FallbackAgent.Remove(player);
                 player.Stop();
                 player.url = string.Empty;
             }
@@ -115,6 +152,8 @@ namespace Heartline.Shared
             if (player != null)
             {
                 player.prepareCompleted -= OnPrepared;
+                player.errorReceived -= OnError;
+                FallbackAgent.Remove(player);
                 player.Stop();
                 if (Application.isPlaying)
                     UnityEngine.Object.Destroy(player);

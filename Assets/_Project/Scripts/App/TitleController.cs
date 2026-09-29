@@ -35,8 +35,11 @@ namespace Heartline.App
         {
             if (ContentFlagsService.Instance != null && !ContentFlagsService.Instance.AgeGatePassed)
             {
+                // No age-gate UI on Title: send the player back to Boot instead of dead-ending here
+                // (happens after "Debug: Reset Save", which wipes PlayerPrefs).
                 if (flagsTextLegacy != null)
-                    flagsTextLegacy.text = "Confirm age gate (18+) on Boot before New Game.";
+                    flagsTextLegacy.text = "Confirm age gate (18+) first…";
+                SceneManager.LoadScene("00_Boot");
                 return;
             }
             SaveService.Instance.ResetAll();
@@ -94,7 +97,9 @@ namespace Heartline.App
             SaveService.Instance.ResetAll();
             PlayerPrefs.DeleteAll();
             AnalyticsSink.Emit("debug_reset", $"schema={GameConstants.SaveSchemaVersion}");
-            SceneManager.LoadScene("01_Title");
+            // PlayerPrefs (incl. the age gate) are gone → restart from Boot, which re-asks 18+.
+            ContentFlagsService.Instance?.Load();
+            SceneManager.LoadScene("00_Boot");
         }
     }
 }

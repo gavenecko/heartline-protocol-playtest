@@ -7,13 +7,15 @@ namespace Heartline.Shared
 {
     /// <summary>
     /// Offline art loader — no Addressables.
-    /// Order: Resources.Load → StreamingAssets/Art LoadImage → Application.dataPath/_Project/Art LoadImage.
-    /// Busts / chrome are also mirrored under Assets/Resources/Art for player builds.
+    /// Order: Resources.Load → StreamingAssets/Art LoadImage (APK-safe) → [Editor only] Assets/_Project/Art.
+    /// Everything the runtime UI needs is mirrored under Assets/Resources/Art for player builds.
     /// </summary>
     public static class ArtLoader
     {
         static readonly Dictionary<string, Texture2D> Cache = new Dictionary<string, Texture2D>();
         static readonly Dictionary<string, Sprite> SpriteCache = new Dictionary<string, Sprite>();
+        // Negative cache: avoids re-probing disk / APK every frame for art that doesn't exist.
+        static readonly HashSet<string> Missing = new HashSet<string>();
 
         public static Texture2D LoadBust(string agentId) =>
             LoadTexture(ArtCatalog.BustResourcePath(agentId));
@@ -263,6 +265,8 @@ namespace Heartline.Shared
             if (string.IsNullOrEmpty(resourcesPathNoExt)) return null;
             if (Cache.TryGetValue(resourcesPathNoExt, out var cached) && cached != null)
                 return cached;
+            if (Missing.Contains(resourcesPathNoExt))
+                return null;
 
             Texture2D tex = null;
 
@@ -287,6 +291,11 @@ namespace Heartline.Shared
 
             if (tex != null)
                 Cache[resourcesPathNoExt] = tex;
+            else
+            {
+                Missing.Add(resourcesPathNoExt);
+                Debug.LogWarning("[HP] Art missing (Resources + StreamingAssets): " + resourcesPathNoExt);
+            }
             return tex;
         }
 
@@ -299,20 +308,25 @@ namespace Heartline.Shared
             {
                 var relativeFile = relative + ext;
 
-                // StreamingAssets/Art/...
-                var streaming = Path.Combine(Application.streamingAssetsPath, relativeFile);
-                if (File.Exists(streaming))
-                    return File.ReadAllBytes(streaming);
+                // StreamingAssets/Art/... (works inside the Android APK via UnityWebRequest).
+                var streaming = StreamingFiles.TryReadBytes(relativeFile);
+                if (streaming != null && streaming.Length > 0)
+                    return streaming;
 
-                // Editor / repo: Assets/_Project/Art/...
+#if UNITY_EDITOR
+                // Editor only: Assets/ does not exist in player builds. Anything a build needs
+                // must be mirrored under Assets/Resources/Art (see Docs/UI_ART_WIRING.md).
                 var projectArt = Path.Combine(Application.dataPath, "_Project", relativeFile);
                 if (File.Exists(projectArt))
+                {
+                    Debug.LogWarning("[HP] Art only found under Assets/_Project (will be MISSING in builds): " + relativeFile);
                     return File.ReadAllBytes(projectArt);
+                }
 
-                // Resources folder on disk (pre-import / Editor): Assets/Resources/Art/...
                 var resourcesDisk = Path.Combine(Application.dataPath, "Resources", relativeFile);
                 if (File.Exists(resourcesDisk))
                     return File.ReadAllBytes(resourcesDisk);
+#endif
             }
 
             return null;

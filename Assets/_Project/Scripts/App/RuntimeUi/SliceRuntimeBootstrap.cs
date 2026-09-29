@@ -24,6 +24,13 @@ namespace Heartline.App.RuntimeUi
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Hook()
         {
+            // Portrait-only game (also locked in Player Settings); Android defaults to 30 fps.
+            Screen.orientation = ScreenOrientation.Portrait;
+            Screen.autorotateToLandscapeLeft = false;
+            Screen.autorotateToLandscapeRight = false;
+            Screen.autorotateToPortraitUpsideDown = false;
+            Application.targetFrameRate = 60;
+            Screen.sleepTimeout = SleepTimeout.SystemSetting;
             SceneManager.sceneLoaded -= OnSceneLoaded;
             SceneManager.sceneLoaded += OnSceneLoaded;
             OnSceneLoaded(SceneManager.GetActiveScene(), LoadSceneMode.Single);
@@ -36,6 +43,9 @@ namespace Heartline.App.RuntimeUi
             EnsureServices();
             var root = new GameObject(Marker);
             Build(scene.name, root.transform);
+            // Keep interactive UI out of notches / punch-holes / gesture bars on phones.
+            foreach (var canvas in root.GetComponentsInChildren<Canvas>(true))
+                SafeAreaFitter.WrapCanvas(canvas);
         }
 
         static void EnsureServices()
@@ -74,7 +84,9 @@ namespace Heartline.App.RuntimeUi
         static void BuildBoot(Transform host)
         {
             var canvas = RuntimeUiKit.CreateCanvas("BootCanvas", host);
-            var boot = host.gameObject.GetComponent<AppBootstrap>() ?? host.gameObject.AddComponent<AppBootstrap>();
+            // Note: `??` bypasses UnityEngine.Object's null check, so test explicitly.
+            var boot = host.gameObject.GetComponent<AppBootstrap>();
+            if (boot == null) boot = host.gameObject.AddComponent<AppBootstrap>();
             RuntimeUiKit.Label(canvas.transform, "Title", "HEARTLINE PROTOCOL", 48, TextAnchor.MiddleCenter,
                 new Vector2(0.05f, 0.72f), new Vector2(0.95f, 0.88f), Vector2.zero, Vector2.zero,
                 new Color(0.91f, 0.78f, 0.48f));
@@ -161,6 +173,13 @@ namespace Heartline.App.RuntimeUi
                 new Color(0f, 0.83f, 1f));
             hub.BindLegacy(sta, he, coins, crystals, status, featured);
             hub.RefreshHud();
+            // HubController.OnEnable starts FTUE/hub dialogue before labels are bound and
+            // RefreshHud overwrites the status line, so re-show it and make it tappable.
+            hub.ShowDialogueStatus();
+            var dlgTap = RuntimeUiKit.Button(canvas.transform, "DialogueTap", "",
+                new Vector2(0.05f, 0.74f), new Vector2(0.55f, 0.84f), Vector2.zero, Vector2.zero,
+                hub.AdvanceDialogue, new Color(0f, 0f, 0f, 0.001f));
+            dlgTap.transform.SetSiblingIndex(status.transform.GetSiblingIndex());
 
             float y = 0.72f;
             void Nav(string label, UnityEngine.Events.UnityAction action)
@@ -445,10 +464,6 @@ namespace Heartline.App.RuntimeUi
                 new Vector2(0.56f, 0.38f), new Vector2(0.98f, 0.72f), Vector2.zero, Vector2.zero);
             var lane = RuntimeUiKit.Label(canvas.transform, "Lane", "Lanes", 18, TextAnchor.MiddleLeft,
                 new Vector2(0.02f, 0.33f), new Vector2(0.98f, 0.38f), Vector2.zero, Vector2.zero);
-            var results = RuntimeUiKit.Label(canvas.transform, "Results", "", 22, TextAnchor.UpperLeft,
-                new Vector2(0.08f, 0.2f), new Vector2(0.92f, 0.85f), Vector2.zero, Vector2.zero,
-                new Color(0.91f, 0.78f, 0.48f));
-            results.gameObject.SetActive(false);
             var portraits = new RawImage[4];
             for (int pi = 0; pi < portraits.Length; pi++)
             {
@@ -456,7 +471,7 @@ namespace Heartline.App.RuntimeUi
                 portraits[pi] = RuntimeUiKit.RawImage(canvas.transform, $"LanePortrait{pi}",
                     new Vector2(x0, 0.365f), new Vector2(x0 + 0.13f, 0.455f), Vector2.zero, Vector2.zero);
             }
-            battle.BindLegacy(board, log, enemy, gauge, lane, status, results, portraits);
+            Text results = null; // created last (on top of the board) — see ResultsPanel below
 
             var grid = new GameObject("GemGrid");
             grid.transform.SetParent(canvas.transform, false);
@@ -468,9 +483,12 @@ namespace Heartline.App.RuntimeUi
             var gl = grid.AddComponent<GridLayoutGroup>();
             gl.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             gl.constraintCount = BoardSimulator.Width;
-            gl.cellSize = new Vector2(72, 48);
+            gl.cellSize = new Vector2(84, 52);
             gl.spacing = new Vector2(4, 4);
             gl.childAlignment = TextAnchor.MiddleCenter;
+            var fitter = grid.AddComponent<GridCellFitter>();
+            fitter.columns = BoardSimulator.Width;
+            fitter.rows = BoardSimulator.Height;
             for (int y = BoardSimulator.Height - 1; y >= 0; y--)
             for (int x = 0; x < BoardSimulator.Width; x++)
             {
@@ -501,9 +519,25 @@ namespace Heartline.App.RuntimeUi
             RuntimeUiKit.Button(canvas.transform, "Retreat", "Retreat",
                 new Vector2(0.8f, 0.04f), new Vector2(0.98f, 0.11f), Vector2.zero, Vector2.zero,
                 battle.Retreat, new Color(0.4f, 0.2f, 0.25f));
-            RuntimeUiKit.Button(canvas.transform, "Continue", "Continue (Results)",
-                new Vector2(0.58f, 0.01f), new Vector2(0.98f, 0.035f), Vector2.zero, Vector2.zero,
+
+            // Results overlay: opaque panel on top of the board (blocks stray taps) with a big
+            // Continue button. Hidden until BattleController.ShowResultsOverlay activates it.
+            var panelGo = new GameObject("ResultsPanel", typeof(RectTransform));
+            panelGo.transform.SetParent(canvas.transform, false);
+            var panelRt = (RectTransform)panelGo.transform;
+            panelRt.anchorMin = new Vector2(0.04f, 0.12f);
+            panelRt.anchorMax = new Vector2(0.96f, 0.88f);
+            panelRt.offsetMin = Vector2.zero;
+            panelRt.offsetMax = Vector2.zero;
+            panelGo.AddComponent<Image>().color = new Color(0.05f, 0.05f, 0.12f, 0.94f);
+            results = RuntimeUiKit.Label(panelGo.transform, "Results", "", 30, TextAnchor.UpperLeft,
+                new Vector2(0.05f, 0.2f), new Vector2(0.95f, 0.97f), Vector2.zero, Vector2.zero,
+                new Color(0.91f, 0.78f, 0.48f));
+            RuntimeUiKit.Button(panelGo.transform, "Continue", "Continue → Hub",
+                new Vector2(0.15f, 0.04f), new Vector2(0.85f, 0.16f), Vector2.zero, Vector2.zero,
                 battle.DismissResults, new Color(0.18f, 0.55f, 0.35f));
+            panelGo.SetActive(false);
+            battle.BindLegacy(board, log, enemy, gauge, lane, status, results, portraits, panelGo);
         }
     }
 

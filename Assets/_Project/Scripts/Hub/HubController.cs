@@ -76,10 +76,11 @@ namespace Heartline.Hub
                 ShowDialogueStatus();
         }
 
-        void ShowDialogueStatus()
+        /// <summary>Shows the active FTUE/hub dialogue line in the status label (tap status to advance).</summary>
+        public void ShowDialogueStatus()
         {
             if (DialogueService.Instance == null || !DialogueService.Instance.IsPlaying) return;
-            HudText.Set(statusText, statusTextLegacy, DialogueService.Instance.CurrentDisplay());
+            HudText.Set(statusText, statusTextLegacy, DialogueService.Instance.CurrentDisplay() + "\n(tap ▶)");
         }
 
         public void AdvanceDialogue()

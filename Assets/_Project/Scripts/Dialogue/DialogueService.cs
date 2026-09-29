@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using Heartline.Save;
+using Heartline.Shared;
 using Heartline.Shared.Dialogue;
 using Heartline.Analytics;
 
@@ -50,13 +50,22 @@ namespace Heartline.App
 
         static DialogueCatalog LoadCatalog()
         {
-            var path = Path.Combine(Application.streamingAssetsPath, "Tables", "dialogue_ch1.json");
-            if (!File.Exists(path))
+            // Android: StreamingAssets is inside the APK, so System.IO.File can't see it.
+            var json = StreamingFiles.TryReadText("Tables/dialogue_ch1.json");
+            if (string.IsNullOrEmpty(json))
             {
-                Debug.LogWarning("[HP] Missing dialogue_ch1.json at " + path);
+                Debug.LogWarning("[HP] Missing dialogue_ch1.json at " + JsonLoader.StreamingPath("dialogue_ch1.json"));
                 return new DialogueCatalog();
             }
-            return JsonUtility.FromJson<DialogueCatalog>(File.ReadAllText(path)) ?? new DialogueCatalog();
+            try
+            {
+                return JsonUtility.FromJson<DialogueCatalog>(json) ?? new DialogueCatalog();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("[HP] Bad dialogue_ch1.json: " + e.Message);
+                return new DialogueCatalog();
+            }
         }
 
         public bool TryStart(string sequenceId)

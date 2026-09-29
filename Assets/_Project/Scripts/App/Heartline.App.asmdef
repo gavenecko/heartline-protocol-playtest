@@ -1,7 +1,7 @@
 {
   "name": "Heartline.App",
   "rootNamespace": "Heartline.App",
-  "references": ["Heartline.Shared","Heartline.SyncMatch","Heartline.Hub","Heartline.Room","Heartline.Meta","Heartline.Save","Heartline.ContentFlags","Heartline.Analytics","Heartline.Gacha","Unity.TextMeshPro","UnityEngine.UI"],
+  "references": ["Heartline.Shared","Heartline.Dialogue","Heartline.SyncMatch","Heartline.Hub","Heartline.Room","Heartline.Meta","Heartline.Save","Heartline.ContentFlags","Heartline.Analytics","Heartline.Gacha","Unity.TextMeshPro","UnityEngine.UI"],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
