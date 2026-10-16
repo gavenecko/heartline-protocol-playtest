@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Heartline Protocol</title>
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <style>
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #120a14; touch-action: none; -webkit-user-select: none; user-select: none; }
+    #unity-container { position: fixed; inset: 0; }
+    #unity-canvas { width: 100%; height: 100%; display: block; background: #120a14; }
+    #unity-loading-bar { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; color: #f3d7e6; font-family: sans-serif; }
+    #unity-progress-bar-empty { width: 220px; height: 10px; margin: 12px auto 0; background: #3a2540; border-radius: 5px; overflow: hidden; }
+    #unity-progress-bar-full { width: 0%; height: 100%; background: #ff5fa2; }
+    #unity-error { display: none; position: absolute; left: 8px; right: 8px; bottom: 8px; padding: 8px; background: #7a1030; color: #fff; font: 13px sans-serif; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div id="unity-container">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <div id="unity-loading-bar">
+      <div id="unity-loading-text">Loading Heartline Protocol…</div>
+      <div id="unity-progress-bar-empty"><div id="unity-progress-bar-full"></div></div>
+    </div>
+    <div id="unity-error"></div>
+  </div>
+  <script>
+    var buildUrl = "Build";
+    var loaderUrl = buildUrl + "/WebGL.loader.js";
+    var config = {
+      arguments: [],
+      dataUrl: buildUrl + "/WebGL.data",
+      frameworkUrl: buildUrl + "/WebGL.framework.js",
+      codeUrl: buildUrl + "/WebGL.wasm",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "Gavenecko",
+      productName: "Heartline Protocol",
+      productVersion: "0.1.0-slice",
+    };
+
+    var canvas = document.querySelector("#unity-canvas");
+    var loadingBar = document.querySelector("#unity-loading-bar");
+    var progressFull = document.querySelector("#unity-progress-bar-full");
+    var errorBox = document.querySelector("#unity-error");
+
+    // Keep the canvas backing store matched to the window (portrait game, fills any window).
+    config.matchWebGLToCanvasSize = true;
+    config.devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+
+    var script = document.createElement("script");
+    script.src = loaderUrl;
+    script.onload = function () {
+      createUnityInstance(canvas, config, function (progress) {
+        progressFull.style.width = (100 * progress) + "%";
+      }).then(function (unityInstance) {
+        window.unityInstance = unityInstance;
+        loadingBar.style.display = "none";
+      }).catch(function (message) {
+        errorBox.style.display = "block";
+        errorBox.textContent = String(message);
+        console.error(message);
+      });
+    };
+    script.onerror = function () {
+      errorBox.style.display = "block";
+      errorBox.textContent = "Failed to load " + loaderUrl;
+    };
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>
